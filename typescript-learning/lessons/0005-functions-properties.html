@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Functions & Properties</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 5 of 11</span>
+    <h1>Functions & Properties</h1>
+    <p class="subtitle">Optional parameters, readonly, keyof, and Record</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Use optional and default parameters correctly</li>
+      <li>Apply <code>readonly</code> for immutability</li>
+      <li>Use <code>keyof</code> and <code>Record</code> for type-safe object operations</li>
+    </ul>
+  </div>
+
+  <!-- Section: Functions Overview -->
+  <div class="content-section">
+    <h2>Functions & Properties in TypeScript</h2>
+    <p>
+      TypeScript functions gain <strong>typed parameters, return types, and overloads</strong> — catching mismatched arguments at compile time. But functions aren't just about parameters and return values. TypeScript also provides powerful tools for defining and constraining <strong>object properties</strong>: making them optional, immutable, or derived from keys.
+    </p>
+    <p>
+      This lesson covers four essential concepts: <strong>optional and default parameters</strong> (flexible function signatures), <strong>readonly properties</strong> (immutability guarantees), <strong>keyof</strong> (dynamic key unions), and <strong>Record</strong> (typed dictionaries). Together, they let you write functions and objects that are both flexible and safe.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1: Optional and Default Parameters (Q15) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What are optional and default parameters?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            TypeScript lets you mark function parameters as <strong>optional</strong> using <code>?</code> — the caller can omit them, and their type implicitly includes <code>undefined</code>. You can also provide a <strong>default value</strong> using <code>= value</code> — if the caller passes <code>undefined</code> (or omits the argument), the default is used instead.
+          </p>
+          <p>
+            <strong>Rules:</strong> Optional parameters must come <em>after</em> required ones. Default parameters don't need to be last, but they become optional from the caller's perspective.
+          </p>
+<pre><code><span class="cm">// Optional parameter — can be undefined</span>
+<span class="kw">function</span> <span class="fn">greet</span>(name: <span class="tp">string</span>, title?: <span class="tp">string</span>): <span class="tp">string</span> {
+  <span class="kw">return</span> title ? <span class="st">`${title} ${name}`</span> : name;
+}
+<span class="fn">greet</span>(<span class="st">"Ali"</span>);          <span class="cm">// OK — title is undefined</span>
+<span class="fn">greet</span>(<span class="st">"Ali"</span>, <span class="st">"Dr."</span>);    <span class="cm">// OK — "Dr. Ali"</span>
+
+<span class="cm">// Default parameter — fallback value</span>
+<span class="kw">function</span> <span class="fn">createUser</span>(name: <span class="tp">string</span>, role: <span class="tp">string</span> = <span class="st">"viewer"</span>): <span class="tp">object</span> {
+  <span class="kw">return</span> { name, role };
+}
+<span class="fn">createUser</span>(<span class="st">"Ali"</span>);              <span class="cm">// { name: "Ali", role: "viewer" }</span>
+<span class="fn">createUser</span>(<span class="st">"Ali"</span>, <span class="st">"admin"</span>);      <span class="cm">// { name: "Ali", role: "admin" }</span>
+
+<span class="cm">// ❌ Error: optional param before required</span>
+<span class="cm">// function bad(title?: string, name: string) { }</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>?</code> = optional (might be <code>undefined</code>). <code>= default</code> = has fallback. Optional params must come <em>after</em> required ones.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2: Readonly Properties (Q16) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What does <code>readonly</code> do?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            The <code>readonly</code> modifier <strong>prevents reassignment</strong> of a property after initialization. Once set (in the constructor or object literal), the property cannot be changed. This is a <strong>compile-time</strong> check — JavaScript itself has no runtime enforcement.
+          </p>
+          <p>
+            <strong>Important caveat:</strong> <code>readonly</code> only prevents <em>direct reassignment</em>. If the property holds a nested object, that object's properties <em>can still be mutated</em>. For deep immutability, use <code>Readonly&lt;T&gt;</code> (shallow) or a library like <code>immutable.js</code>.
+          </p>
+<pre><code><span class="kw">interface</span> <span class="tp">Config</span> {
+  <span class="kw">readonly</span> apiKey: <span class="tp">string</span>;
+  retries: <span class="tp">number</span>;
+}
+
+<span class="kw">const</span> config: <span class="tp">Config</span> = { apiKey: <span class="st">"abc123"</span>, retries: <span class="nm">3</span> };
+config.retries = <span class="nm">5</span>;       <span class="cm">// OK</span>
+<span class="cm">// config.apiKey = "xyz";  // ❌ Error: readonly</span>
+
+<span class="cm">// ⚠️ Nested mutation still works!</span>
+<span class="kw">interface</span> <span class="tp">State</span> {
+  <span class="kw">readonly</span> user: { name: <span class="tp">string</span> };
+}
+<span class="kw">const</span> s: <span class="tp">State</span> = { user: { name: <span class="st">"Ali"</span> } };
+s.user.name = <span class="st">"Sara"</span>;    <span class="cm">// ⚠️ Allowed — nested mutation</span>
+
+<span class="cm">// Use Readonly&lt;T&gt; for all properties at once</span>
+<span class="kw">type</span> <span class="tp">FrozenConfig</span> = <span class="tp">Readonly</span>&lt;<span class="tp">Config</span>&gt;;</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>readonly</code> = write-once, like <code>const</code> but for <em>properties</em>. Only prevents direct reassignment — nested objects can still be mutated.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3: keyof Operator (Q17) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What is the <code>keyof</code> operator?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>keyof</code> creates a <strong>union type of an object type's keys</strong>. Given an interface or type alias, <code>keyof T</code> produces a string literal union of all its property names. It's essential for writing <strong>generic utility functions</strong> that need to reference property names in a type-safe way.
+          </p>
+<pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  name: <span class="tp">string</span>;
+  age: <span class="tp">number</span>;
+  email: <span class="tp">string</span>;
+}
+
+<span class="kw">type</span> <span class="tp">UserKeys</span> = <span class="kw">keyof</span> <span class="tp">User</span>;
+<span class="cm">// "name" | "age" | "email"</span>
+
+<span class="cm">// Perfect for generic property access</span>
+<span class="kw">function</span> <span class="fn">getProperty</span>&lt;<span class="tp">T</span>, <span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">T</span>&gt;(obj: <span class="tp">T</span>, key: <span class="tp">K</span>): <span class="tp">T</span>[<span class="tp">K</span>] {
+  <span class="kw">return</span> obj[key];
+}
+
+<span class="kw">const</span> user: <span class="tp">User</span> = { name: <span class="st">"Ali"</span>, age: <span class="nm">25</span>, email: <span class="st">"ali@test.com"</span> };
+<span class="fn">getProperty</span>(user, <span class="st">"name"</span>);  <span class="cm">// string ✅</span>
+<span class="cm">// getProperty(user, "phone"); // ❌ Error — not a key of User</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>keyof</code> = "give me all the keys as a union". Use it whenever you need to reference property names in a type-safe way.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4: Record<K, V> (Q20) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What is <code>Record&lt;K, V&gt;</code>?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>Record&lt;K, V&gt;</code> is a built-in utility type that creates an <strong>object type with keys of type K and values of type V</strong>. It's TypeScript's way of defining a <strong>typed dictionary or map</strong>. Every key must be of type K, and every value must be of type V.
+          </p>
+<pre><code><span class="cm">// Any string key → number value</span>
+<span class="kw">const</span> scores: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">number</span>&gt; = {
+  alice: <span class="nm">95</span>,
+  bob: <span class="nm">87</span>,
+  charlie: <span class="nm">92</span>,
+};
+
+<span class="cm">// Combine with literal unions for strict keys</span>
+<span class="kw">type</span> <span class="tp">Role</span> = <span class="st">"admin"</span> | <span class="st">"editor"</span> | <span class="st">"viewer"</span>;
+<span class="kw">const</span> permissions: <span class="tp">Record</span>&lt;<span class="tp">Role</span>, <span class="tp">string[]</span>&gt; = {
+  admin: [<span class="st">"read"</span>, <span class="st">"write"</span>, <span class="st">"delete"</span>],
+  editor: [<span class="st">"read"</span>, <span class="st">"write"</span>],
+  viewer: [<span class="st">"read"</span>],
+};
+<span class="cm">// permissions.admin → string[] ✅</span>
+<span class="cm">// permissions.superuser → ❌ Error — not a Role</span>
+
+<span class="cm">// Equivalent to writing it out manually:</span>
+<span class="cm">// { admin: string[]; editor: string[]; viewer: string[] }</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>Record</code> = typed dictionary/map. <code>Record&lt;string, number&gt;</code> = any string key maps to a number. Combine with unions for strict keys.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. What happens if an optional parameter is not provided?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> TypeScript throws a runtime error</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Its value is <code>undefined</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> TypeScript uses the first parameter's value</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> The function is not called</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Optional parameters (marked with <code>?</code>) become <code>undefined</code> when not provided by the caller.</div>
+      <div class="quiz-feedback incorrect">❌ Optional parameters receive <code>undefined</code> when omitted. That's why their type implicitly includes <code>undefined</code>.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. What does <code>readonly</code> prevent?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Reading the property before initialization</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> All mutations on the object, including nested ones</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Direct reassignment of the property after initialization</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Other interfaces from extending the property</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>readonly</code> only prevents direct reassignment — nested objects can still be mutated.</div>
+      <div class="quiz-feedback incorrect">❌ <code>readonly</code> only prevents direct reassignment of the property itself. Nested object properties can still be mutated.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. What does <code>keyof User</code> produce if <code>User</code> has properties <code>name</code>, <code>age</code>, and <code>email</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> The union type <code>"name" | "age" | "email"</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> An array of key strings</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> The value types of each property</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> A boolean indicating if the keys exist</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>keyof</code> creates a string literal union of all property names — <code>"name" | "age" | "email"</code>.</div>
+      <div class="quiz-feedback incorrect">❌ <code>keyof</code> produces a union of the property <em>names</em> as string literals, not their values or an array.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Confused about optional parameters or <code>keyof</code>? Ask your AI teacher — these concepts click faster with examples.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0004-special-types.html">← Previous: Special Types</a>
+    <a href="0006-narrowing-guards.html">Next: Narrowing & Guards →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

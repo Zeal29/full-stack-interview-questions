@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8 — Advanced Type Features</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 8 of 11</span>
+    <h1>Advanced Type Features</h1>
+    <p class="subtitle">Conditional types, infer, as const, and template literal types</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Write conditional types with <code>extends</code></li>
+      <li>Use <code>infer</code> to extract types</li>
+      <li>Apply <code>as const</code> for narrow type inference</li>
+      <li>Create template literal types for string manipulation</li>
+    </ul>
+  </div>
+
+  <!-- Section: Why Advanced Types -->
+  <div class="content-section">
+    <h2>Why Advanced Types?</h2>
+    <p>
+      TypeScript's type system is <strong>Turing-complete</strong> — you can perform computations at the type level. Conditional types let you choose types dynamically. The <code>infer</code> keyword extracts types from patterns. <code>as const</code> locks down literal types. Template literal types let you manipulate strings at the type level. Together, these features let you build type-safe APIs that guide users and catch errors before runtime.
+    </p>
+    <p>
+      You won't use these every day, but libraries like Redux, Zod, and React Router rely heavily on them. Understanding these features helps you <strong>read library types</strong> and write smarter abstractions.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 — Conditional Types (Q22) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What are conditional types in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Conditional types let you <strong>choose a type based on a condition</strong>, using the syntax <code>T extends U ? X : Y</code>. If <code>T</code> is assignable to <code>U</code>, the type resolves to <code>X</code>; otherwise it resolves to <code>Y</code>. Think of it as a <strong>ternary operator for types</strong>.
+          </p>
+          <p>
+            The <code>infer</code> keyword works inside conditional types to <strong>extract and capture a type</strong> from a pattern. It's like a regex capture group — you declare a type variable that TS fills in during checking.
+          </p>
+<pre><code><span class="cm">// Basic conditional type</span>
+<span class="kw">type</span> <span class="tp">IsString</span>&lt;<span class="tp">T</span>&gt; = <span class="tp">T</span> <span class="kw">extends</span> <span class="tp">string</span> ? <span class="tp">true</span> : <span class="tp">false</span>;
+
+<span class="cm">// Using infer to extract return type</span>
+<span class="kw">type</span> <span class="tp">ReturnType</span>&lt;<span class="tp">T</span>&gt; = <span class="tp">T</span> <span class="kw">extends</span> (...<span class="kw">args</span>: <span class="tp">any</span>[]) => <span class="kw">infer</span> <span class="tp">R</span> ? <span class="tp">R</span> : <span class="tp">never</span>;
+
+<span class="kw">type</span> <span class="tp">A</span> = <span class="tp">ReturnType</span>&lt;() => <span class="tp">string</span>&gt;;  <span class="cm">// string</span>
+<span class="kw">type</span> <span class="tp">B</span> = <span class="tp">ReturnType</span>&lt;(<span class="kw">x</span>: <span class="tp">number</span>) => <span class="tp">void</span>&gt;; <span class="cm">// void</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Conditional types = <strong>ternary for types</strong>. <code>infer</code> = <strong>"extract and capture a type"</strong> — like a regex capture group but for type positions.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 — infer in Conditional Types (Q30) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>How does <code>infer</code> work in conditional types?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>infer</code> <strong>extracts and captures a type within a conditional</strong>. You place it inside the <code>extends</code> clause of a conditional type to declare a type variable that TypeScript will infer from the matched pattern. It only works inside <code>extends</code> conditionals — you can't use it standalone.
+          </p>
+          <p>
+            Common uses: extracting array element types, function return types, promise unwrapped types, and tuple element types.
+          </p>
+<pre><code><span class="cm">// Extract element type from an array</span>
+<span class="kw">type</span> <span class="tp">ArrayElement</span>&lt;<span class="tp">T</span>&gt; = <span class="tp">T</span> <span class="kw">extends</span> (<span class="kw">infer</span> <span class="tp">E</span>)[] ? <span class="tp">E</span> : <span class="tp">never</span>;
+
+<span class="kw">type</span> <span class="tp">Num</span> = <span class="tp">ArrayElement</span>&lt;<span class="tp">number</span>[]&gt;; <span class="cm">// number</span>
+<span class="kw">type</span> <span class="tp">Str</span> = <span class="tp">ArrayElement</span>&lt;<span class="tp">string</span>[]&gt;; <span class="cm">// string</span>
+
+<span class="cm">// Unwrap Promise type</span>
+<span class="kw">type</span> <span class="tp">Awaited</span>&lt;<span class="tp">T</span>&gt; = <span class="tp">T</span> <span class="kw">extends</span> <span class="tp">Promise</span>&lt;<span class="kw">infer</span> <span class="tp">U</span>&gt; ? <span class="tp">U</span> : <span class="tp">T</span>;
+
+<span class="kw">type</span> <span class="tp">Result</span> = <span class="tp">Awaited</span>&lt;<span class="tp">Promise</span>&lt;<span class="tp">string</span>&gt;&gt;; <span class="cm">// string</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>infer</code> = <strong>"extract this type for me"</strong>. Like a regex capture group for types — it only works inside <code>extends</code> conditionals.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 — as const Assertion (Q31) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What does <code>as const</code> do in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>as const</code> makes TypeScript infer the <strong>narrowest possible literal types</strong>. It converts every property to <code>readonly</code> with literal types — strings become their exact string literal, numbers become their exact numeric literal, and arrays become readonly tuples.
+          </p>
+          <p>
+            Without <code>as const</code>, TypeScript widens types: <code>"hello"</code> becomes <code>string</code>, <code>42</code> becomes <code>number</code>. With <code>as const</code>, they stay as <code>"hello"</code> and <code>42</code>. Essential for building <strong>discriminated unions</strong> and <strong>exact tuple types</strong>.
+          </p>
+<pre><code><span class="cm">// Without as const — types are widened</span>
+<span class="kw">const</span> config = { <span class="kw">host</span>: <span class="st">"localhost"</span>, <span class="kw">port</span>: <span class="nm">3000</span> };
+<span class="cm">// { host: string; port: number }</span>
+
+<span class="cm">// With as const — literal types, locked down</span>
+<span class="kw">const</span> config = { <span class="kw">host</span>: <span class="st">"localhost"</span>, <span class="kw">port</span>: <span class="nm">3000</span> } <span class="kw">as const</span>;
+<span class="cm">// { readonly host: "localhost"; readonly port: 3000 }</span>
+
+<span class="cm">// Tuples become readonly</span>
+<span class="kw">const</span> pair = [<span class="st">"a"</span>, <span class="nm">1</span>] <span class="kw">as const</span>;
+<span class="cm">// readonly ["a", 1] — a readonly tuple, not string[]</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>as const</code> = <strong>"lock it down"</strong>. Widening stops, mutability stops — the type becomes exactly what you wrote.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 — Template Literal Types (Q32) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What are template literal types in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Template literal types let you perform <strong>string manipulation at the type level</strong>. Using backticks in a type position (just like template literals in JS), you can generate and transform string union types. TypeScript includes four built-in intrinsic types: <code>Uppercase</code>, <code>Lowercase</code>, <code>Capitalize</code>, and <code>Uncapitalize</code>.
+          </p>
+<pre><code><span class="cm">// Generate string unions from other unions</span>
+<span class="kw">type</span> <span class="tp">Direction</span> = <span class="st">"top"</span> | <span class="st">"bottom"</span> | <span class="st">"left"</span> | <span class="st">"right"</span>;
+<span class="kw">type</span> <span class="tp">CSSMargin</span> = `margin-${<span class="tp">Direction</span>}`;
+<span class="cm">// "margin-top" | "margin-bottom" | "margin-left" | "margin-right"</span>
+
+<span class="cm">// Built-in string manipulation types</span>
+<span class="kw">type</span> <span class="tp">Upper</span> = <span class="tp">Uppercase</span>&lt;<span class="st">"hello"</span>&gt;;       <span class="cm">// "HELLO"</span>
+<span class="kw">type</span> <span class="tp">Lower</span> = <span class="tp">Lowercase</span>&lt;<span class="st">"HELLO"</span>&gt;;       <span class="cm">// "hello"</span>
+<span class="kw">type</span> <span class="tp">Cap</span>   = <span class="tp">Capitalize</span>&lt;<span class="st">"hello"</span>&gt;;     <span class="cm">// "Hello"</span>
+<span class="kw">type</span> <span class="tp">Uncap</span> = <span class="tp">Uncapitalize</span>&lt;<span class="st">"Hello"</span>&gt;; <span class="cm">// "hello"</span>
+
+<span class="cm">// Combine with unions for event names</span>
+<span class="kw">type</span> <span class="tp">EventName</span> = `on${<span class="tp">Capitalize</span>&lt;<span class="st">"click"</span> | <span class="st">"focus"</span>&gt;}`;
+<span class="cm">// "onClick" | "onFocus"</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Template literal types = <strong>template literals for types</strong>. Same backtick syntax as JS, but at the type level — generates string unions automatically.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. What does <code>T extends U ? X : Y</code> represent in TypeScript?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> A runtime conditional check</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A conditional type that resolves to X or Y based on whether T extends U</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> A generic constraint that requires T to be U</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> A type alias that always resolves to never</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Conditional types use ternary syntax to choose between two types based on an extends check.</div>
+      <div class="quiz-feedback incorrect">❌ This is a conditional type — TypeScript checks if <code>T extends U</code> at compile time and resolves to <code>X</code> or <code>Y</code> accordingly.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. What does <code>as const</code> do to an object literal?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Makes it mutable with literal types</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Converts all values to strings</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Makes all properties readonly with narrow literal types</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Removes type checking for that value</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>as const</code> locks everything down — readonly properties with exact literal types instead of widened ones.</div>
+      <div class="quiz-feedback incorrect">❌ <code>as const</code> makes properties <code>readonly</code> and infers the narrowest literal types (e.g., <code>"hello"</code> instead of <code>string</code>).</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. Where can the <code>infer</code> keyword be used?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Only inside the <code>extends</code> clause of a conditional type</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Anywhere in a type alias</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Inside function parameters</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> In any generic type declaration</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>infer</code> only works inside the <code>extends</code> clause of a conditional type — it can't be used anywhere else.</div>
+      <div class="quiz-feedback incorrect">❌ <code>infer</code> is restricted to the <code>extends</code> clause of conditional types. It captures a type from the pattern being matched.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Have questions about advanced type features? Ask your AI teacher — no question is too complex.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0007-utility-types.html">← Previous: Utility Types</a>
+    <a href="0009-patterns.html">Next: Type Patterns →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

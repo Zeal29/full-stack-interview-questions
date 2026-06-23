@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Generics</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 3 of 11</span>
+    <h1>Generics</h1>
+    <p class="subtitle">Type variables, generic functions and classes, and type constraints</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Write generic functions and classes with type parameters</li>
+      <li>Use generic constraints with <code>extends</code></li>
+      <li>Understand common generic patterns (<code>Array&lt;T&gt;</code>, <code>Promise&lt;T&gt;</code>, <code>Record&lt;K,V&gt;</code>)</li>
+    </ul>
+  </div>
+
+  <!-- Section: Understanding Generics -->
+  <div class="content-section">
+    <h2>Understanding Generics</h2>
+    <p>
+      Generics let you write <strong>reusable, type-safe code</strong> that works with multiple types. Instead of writing separate functions for <code>number</code>, <code>string</code>, and <code>boolean</code>, you write <strong>one function with a type variable</strong> — a placeholder that the caller fills in.
+    </p>
+    <p>
+      The type variable <code>&lt;T&gt;</code> is like a <strong>function argument for types</strong>. You define it once, and every call site specifies the concrete type. TypeScript then checks that everything lines up — no runtime cost, full compile-time safety.
+    </p>
+
+    <h3>Basic Generic Function</h3>
+    <p>
+      The simplest generic — a function that returns whatever you pass in:
+    </p>
+<pre><code><span class="kw">function</span> <span class="tp">identity</span>&lt;<span class="tp">T</span>&gt;(value: <span class="tp">T</span>): <span class="tp">T</span> {
+  <span class="kw">return</span> value;
+}
+
+<span class="kw">const</span> a = identity&lt;<span class="tp">string</span>&gt;(<span class="st">"hello"</span>);  <span class="cm">// type: string</span>
+<span class="kw">const</span> b = identity(<span class="nm">42</span>);              <span class="cm">// inferred as number</span></code></pre>
+
+    <h3>Generic Class</h3>
+    <p>
+      Classes can use generics too — the type variable is available throughout the entire class:
+    </p>
+<pre><code><span class="kw">class</span> <span class="tp">Box</span>&lt;<span class="tp">T</span>&gt; {
+  <span class="kw">private</span> contents: <span class="tp">T</span>;
+
+  <span class="kw">constructor</span>(value: <span class="tp">T</span>) {
+    <span class="kw">this</span>.contents = value;
+  }
+
+  getContents(): <span class="tp">T</span> {
+    <span class="kw">return this</span>.contents;
+  }
+}
+
+<span class="kw">const</span> stringBox = <span class="kw">new</span> <span class="tp">Box</span>(<span class="st">"keys"</span>);     <span class="cm">// Box&lt;string&gt;</span>
+<span class="kw">const</span> numberBox = <span class="kw">new</span> <span class="tp">Box</span>(<span class="nm">99</span>);        <span class="cm">// Box&lt;number&gt;</span></code></pre>
+
+    <h3>Multiple Type Parameters</h3>
+    <p>
+      You're not limited to one type variable. Use as many as you need:
+    </p>
+<pre><code><span class="kw">function</span> <span class="tp">pair</span>&lt;<span class="tp">A</span>, <span class="tp">B</span>&gt;(first: <span class="tp">A</span>, second: <span class="tp">B</span>): [<span class="tp">A</span>, <span class="tp">B</span>] {
+  <span class="kw">return</span> [first, second];
+}
+
+<span class="kw">const</span> result = pair(<span class="st">"age"</span>, <span class="nm">25</span>);  <span class="cm">// [string, number]</span></code></pre>
+
+    <h3>Generic Constraints with <code>extends</code></h3>
+    <p>
+      Sometimes you need <code>T</code> to have certain properties. Use <code>T extends SomeType</code> to constrain what types are allowed:
+    </p>
+<pre><code><span class="kw">interface</span> <span class="tp">HasLength</span> {
+  length: <span class="tp">number</span>;
+}
+
+<span class="kw">function</span> <span class="tp">logLength</span>&lt;<span class="tp">T</span> <span class="kw">extends</span> <span class="tp">HasLength</span>&gt;(item: <span class="tp">T</span>): <span class="tp">void</span> {
+  console.log(item.length);
+}
+
+logLength(<span class="st">"hello"</span>);     <span class="cm">// OK — string has .length</span>
+logLength([<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]);     <span class="cm">// OK — array has .length</span>
+logLength(<span class="nm">123</span>);           <span class="cm">// Error — number has no .length</span></code></pre>
+
+    <h3>Default Type Parameters</h3>
+    <p>
+      You can provide a default type so callers don't have to specify it every time:
+    </p>
+<pre><code><span class="kw">interface</span> <span class="tp">PaginatedResponse</span>&lt;<span class="tp">T</span> = <span class="tp">unknown</span>&gt; {
+  data: <span class="tp">T</span>[];
+  page: <span class="tp">number</span>;
+  totalPages: <span class="tp">number</span>;
+}
+
+<span class="kw">const</span> fallback: <span class="tp">PaginatedResponse</span> = {  <span class="cm">// T = unknown</span>
+  data: [],
+  page: <span class="nm">1</span>,
+  totalPages: <span class="nm">0</span>,
+};
+
+<span class="kw">const</span> users: <span class="tp">PaginatedResponse</span>&lt;<span class="tp">User</span>&gt; = { <span class="cm">// T = User</span>
+  data: [{ name: <span class="st">"Ali"</span> }],
+  page: <span class="nm">1</span>,
+  totalPages: <span class="nm">5</span>,
+};</code></pre>
+
+    <h3>Common Built-in Generics</h3>
+    <p>
+      You've already been using generics without realizing it. TypeScript's built-in types are heavily generic:
+    </p>
+<pre><code><span class="tp">Array</span>&lt;<span class="tp">T</span>&gt;           <span class="cm">// T[] — an array of T</span>
+<span class="tp">Promise</span>&lt;<span class="tp">T</span>&gt;         <span class="cm">// resolves to T</span>
+<span class="tp">Record</span>&lt;<span class="tp">K</span>, <span class="tp">V</span>&gt;       <span class="cm">// object with keys K and values V</span>
+<span class="tp">Map</span>&lt;<span class="tp">K</span>, <span class="tp">V</span>&gt;          <span class="cm">// key-value store</span>
+<span class="tp">Partial</span>&lt;<span class="tp">T</span>&gt;         <span class="cm">// all properties of T optional</span>
+<span class="tp">Omit</span>&lt;<span class="tp">T</span>, <span class="tp">K</span>&gt;         <span class="cm">// T without keys K</span></code></pre>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 — What are Generics -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What are generics in TypeScript? (Q6)</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Generics are <strong>type variables</strong> — placeholders for types that get filled in when you use the function, class, or interface. They let you write <strong>reusable, type-safe code</strong> that works with any type without sacrificing type information.
+          </p>
+          <p>
+            <code>&lt;T&gt;</code> is the most common type variable name (convention, not a keyword). You can name it anything — <code>&lt;TItem&gt;</code>, <code>&lt;TResult&gt;</code>, <code>&lt;K, V&gt;</code> for key-value pairs.
+          </p>
+<pre><code><span class="cm">// Without generics — loses type info</span>
+<span class="kw">function</span> <span class="tp">identity</span>(value: <span class="tp">any</span>): <span class="tp">any</span> {
+  <span class="kw">return</span> value;
+}
+
+<span class="cm">// With generics — preserves exact type</span>
+<span class="kw">function</span> <span class="tp">identity</span>&lt;<span class="tp">T</span>&gt;(value: <span class="tp">T</span>): <span class="tp">T</span> {
+  <span class="kw">return</span> value;
+}
+
+<span class="kw">const</span> x = identity(<span class="st">"hello"</span>);  <span class="cm">// x: string (not any!)</span></code></pre>
+          <p>
+            <strong>Common generic patterns:</strong> <code>Array&lt;T&gt;</code>, <code>Promise&lt;T&gt;</code>, <code>Record&lt;K, V&gt;</code>, <code>Map&lt;K, V&gt;</code>, <code>Partial&lt;T&gt;</code>, <code>Omit&lt;T, K&gt;</code>
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Generics = <strong>type variables</strong>. <code>&lt;T&gt;</code> is a placeholder for a type the user specifies when calling. Think of it like <strong>function arguments but for types</strong> — the caller decides the concrete type.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 — Generic Constraints -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What are generic constraints and how do you use <code>extends</code>? (Q43)</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Generic constraints <strong>limit what types a type variable can accept</strong>. <code>T extends SomeType</code> means "T must be at least this type" — it must have all the properties of <code>SomeType</code>.
+          </p>
+          <p>
+            The most powerful pattern is <code>K extends keyof T</code> — it constrains K to be a valid key of T. Combined with the return type <code>T[K]</code>, you get fully type-safe property access:
+          </p>
+<pre><code><span class="kw">function</span> <span class="tp">getProperty</span>&lt;<span class="tp">T</span>, <span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">T</span>&gt;(obj: <span class="tp">T</span>, key: <span class="tp">K</span>): <span class="tp">T</span>[<span class="tp">K</span>] {
+  <span class="kw">return</span> obj[key];
+}
+
+<span class="kw">const</span> user = { name: <span class="st">"Ali"</span>, age: <span class="nm">25</span> };
+<span class="kw">const</span> n = getProperty(user, <span class="st">"name"</span>);  <span class="cm">// string</span>
+<span class="kw">const</span> a = getProperty(user, <span class="st">"age"</span>);   <span class="cm">// number</span>
+getProperty(user, <span class="st">"email"</span>);          <span class="cm">// Error! "email" not a key</span></code></pre>
+          <p>
+            Without the constraint, TypeScript couldn't guarantee that <code>key</code> actually exists on <code>obj</code> — you'd get runtime errors. With <code>extends keyof T</code>, invalid keys are caught at compile time.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>extends</code> in generics = <strong>"must be at least this type"</strong>. <code>K extends keyof T</code> = "K must be a valid key of T". It's a <strong>compile-time guard</strong> that prevents invalid access.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. What does <code>&lt;T&gt;</code> represent in a generic function?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> A special TypeScript keyword</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A type variable — a placeholder for a type filled in by the caller</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> A runtime value passed to the function</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> An alias for the <code>any</code> type</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>&lt;T&gt;</code> is a type variable — like a function argument, but for types. The caller specifies the concrete type when using the function.</div>
+      <div class="quiz-feedback incorrect">❌ <code>&lt;T&gt;</code> is a type variable (a placeholder). It's not a keyword, not a runtime value, and definitely not <code>any</code> — it preserves full type safety.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. What does <code>T extends HasLength</code> enforce?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> T must be exactly the HasLength type</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> T must inherit from HasLength at runtime</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> T must have at least a <code>length: number</code> property</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> T is converted to HasLength automatically</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>T extends HasLength</code> means T must have all properties of HasLength — in this case, a <code>length: number</code> property. It's structural, not inheritance-based.</div>
+      <div class="quiz-feedback incorrect">❌ <code>extends</code> in generics is a <strong>constraint</strong>, not inheritance. It means "T must have at least these properties" — it's checked structurally at compile time.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. What does <code>K extends keyof T</code> ensure?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> K must be a valid key of T, preventing invalid property access</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> K and T must be the same type</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> K must be a number</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> T must extend the properties listed in K</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>K extends keyof T</code> constrains K to only valid keys of T. If T is <code>{name: string, age: number}</code>, K can only be <code>"name"</code> or <code>"age"</code>.</div>
+      <div class="quiz-feedback incorrect">❌ <code>K extends keyof T</code> ensures K is one of T's property keys. It's how TypeScript prevents typos and invalid property access at compile time.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Have questions about generics or type constraints? Ask your AI teacher — no question is too basic.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0002-defining-types.html">← Previous: Defining Types</a>
+    <a href="0004-special-types.html">Next: Special Types →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

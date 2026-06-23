@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeScript Glossary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .ref-header {
+      text-align: center;
+      padding: var(--space-2xl) 0 var(--space-xl);
+      border-bottom: 2px solid var(--border);
+      margin-bottom: var(--space-2xl);
+    }
+    .ref-header .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 100px;
+      margin-bottom: var(--space-md);
+    }
+    .ref-header h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: var(--space-sm);
+      line-height: 1.2;
+    }
+    .ref-header .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Glossary list */
+    .glossary-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .glossary-entry {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: var(--space-md);
+      padding: var(--space-lg) var(--space-md);
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+    .glossary-entry:nth-child(even) {
+      background: var(--surface-alt);
+      border-radius: var(--radius-sm);
+    }
+
+    .glossary-term {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--primary-dark);
+      padding-top: 2px;
+    }
+
+    .glossary-def {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .glossary-def strong {
+      color: var(--text);
+    }
+
+    .glossary-def pre {
+      margin: var(--space-sm) 0 var(--space-xs);
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+
+    .glossary-def code {
+      font-size: 0.82em;
+    }
+
+    .letter-anchor {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary);
+      padding: var(--space-lg) 0 var(--space-sm);
+      border-bottom: 2px solid var(--primary);
+      margin-bottom: var(--space-md);
+      margin-top: var(--space-xl);
+      display: block;
+    }
+    .letter-anchor:first-of-type {
+      margin-top: 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background var(--transition-fast);
+    }
+    .back-link:hover {
+      background: var(--primary-dark);
+    }
+
+    @media (max-width: 640px) {
+      .glossary-entry {
+        grid-template-columns: 1fr;
+        gap: var(--space-xs);
+      }
+    }
+
+    @media print {
+      .back-link { display: none; }
+      .glossary-entry:nth-child(even) { background: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ref-header">
+    <div class="badge">Glossary</div>
+    <h1>TypeScript Glossary</h1>
+    <p class="subtitle">Every term you'll encounter — defined, with code examples.</p>
+  </header>
+
+  <!-- ═══ A ═══ -->
+  <h3 class="letter-anchor">A</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Ambient Declaration</span>
+      <div class="glossary-def">
+        Tells the compiler about a value that exists at runtime but has no TypeScript source. Uses <code>declare</code> keyword.
+        <pre><code><span class="kw">declare</span> <span class="kw">const</span> $: <span class="tp">any</span>; <span class="cm">// jQuery loaded via CDN</span>
+<span class="kw">declare</span> <span class="kw">module</span> <span class="st">"some-lib"</span> {
+  <span class="kw">export function</span> <span class="fn">doThing</span>(): <span class="tp">void</span>;
+}</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Assertion</span>
+      <div class="glossary-def">
+        Override the compiler's inferred type using <code>as</code> or angle-bracket syntax. Use sparingly — it silences the checker.
+        <pre><code><span class="kw">let</span> val = <span class="st">"hello"</span> <span class="kw">as</span> <span class="tp">string</span> | <span class="tp">number</span>;
+<span class="kw">let</span> el = document.<span class="fn">getElementById</span>(<span class="st">"x"</span>) <span class="kw">as</span> <span class="tp">HTMLInputElement</span>;</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ B ═══ -->
+  <h3 class="letter-anchor">B</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Brace-style</span>
+      <div class="glossary-def">
+        TypeScript's structural typing means two types are compatible if their <em>shape</em> matches, regardless of the declaration form (interface vs. type alias vs. inline).
+        <pre><code><span class="cm">// These are structurally identical:</span>
+<span class="kw">interface</span> <span class="tp">Point</span> { x: <span class="tp">number</span>; y: <span class="tp">number</span>; }
+<span class="kw">type</span> <span class="tp">Pt</span> = { x: <span class="tp">number</span>; y: <span class="tp">number</span> };
+<span class="kw">const</span> p: <span class="tp">Point</span> = { x: <span class="nm">1</span>, y: <span class="nm">2</span> } <span class="kw">as</span> <span class="tp">Pt</span>; <span class="cm">// OK</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ C ═══ -->
+  <h3 class="letter-anchor">C</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Conditional Type</span>
+      <div class="glossary-def">
+        A type that selects between two branches based on a constraint. Syntax: <code>T extends U ? X : Y</code>.
+        <pre><code><span class="kw">type</span> <span class="tp">IsString</span>&lt;<span class="tp">T</span>&gt; = <span class="tp">T</span> <span class="kw">extends</span> <span class="tp">string</span> ? <span class="tp">true</span> : <span class="tp">false</span>;
+<span class="kw">type</span> <span class="tp">A</span> = <span class="tp">IsString</span>&lt;<span class="tp">string</span>&gt;;  <span class="cm">// true</span>
+<span class="kw">type</span> <span class="tp">B</span> = <span class="tp">IsString</span>&lt;<span class="tp">number</span>&gt;;  <span class="cm">// false</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ D ═══ -->
+  <h3 class="letter-anchor">D</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Declaration File (.d.ts)</span>
+      <div class="glossary-def">
+        A file containing only type declarations (no runtime code). Describes the shape of JavaScript libraries.
+        <pre><code><span class="cm">// utils.d.ts</span>
+<span class="kw">export declare function</span> <span class="fn">greet</span>(name: <span class="tp">string</span>): <span class="tp">string</span>;</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Declaration Merging</span>
+      <div class="glossary-def">
+        The compiler combines multiple declarations with the same name into a single definition. Common with namespaces and interfaces.
+        <pre><code><span class="kw">interface</span> <span class="tp">Box</span> { height: <span class="tp">number</span>; }
+<span class="kw">interface</span> <span class="tp">Box</span> { width: <span class="tp">number</span>; }
+<span class="cm">// Box now has both height and width</span></code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Discriminated Union</span>
+      <div class="glossary-def">
+        A union where every member shares a common property (the discriminant) with a unique literal value. Enables exhaustive narrowing.
+        <pre><code><span class="kw">type</span> <span class="tp">Shape</span> =
+  | { kind: <span class="st">"circle"</span>; radius: <span class="tp">number</span> }
+  | { kind: <span class="st">"rect"</span>; w: <span class="tp">number</span>; h: <span class="tp">number</span> };
+
+<span class="kw">function</span> <span class="fn">area</span>(s: <span class="tp">Shape</span>): <span class="tp">number</span> {
+  <span class="kw">switch</span> (s.kind) {
+    <span class="kw">case</span> <span class="st">"circle"</span>: <span class="kw">return</span> Math.PI * s.radius ** <span class="nm">2</span>;
+    <span class="kw">case</span> <span class="st">"rect"</span>: <span class="kw">return</span> s.w * s.h;
+  }
+}</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ E ═══ -->
+  <h3 class="letter-anchor">E</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Enum</span>
+      <div class="glossary-def">
+        A set of named constants. Prefer string enums or union literals for type safety.
+        <pre><code><span class="kw">enum</span> <span class="tp">Status</span> {
+  Active = <span class="st">"ACTIVE"</span>,
+  Inactive = <span class="st">"INACTIVE"</span>,
+}
+<span class="kw">let</span> s: <span class="tp">Status</span> = Status.Active;</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Exhaustiveness Check</span>
+      <div class="glossary-def">
+        Ensures every case in a union is handled. Use <code>never</code> to get compiler errors if a case is missed.
+        <pre><code><span class="kw">function</span> <span class="fn">assertNever</span>(x: <span class="tp">never</span>): <span class="tp">never</span> {
+  <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="st">`Unhandled: ${</span>x<span class="st">}`</span>);
+}
+<span class="kw">function</span> <span class="fn">handle</span>(s: <span class="tp">Shape</span>) {
+  <span class="kw">switch</span> (s.kind) {
+    <span class="kw">case</span> <span class="st">"circle"</span>: <span class="kw">return</span>;
+    <span class="kw">default</span>: <span class="fn">assertNever</span>(s); <span class="cm">// Error if new case added</span>
+  }
+}</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ G ═══ -->
+  <h3 class="letter-anchor">G</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Generic</span>
+      <div class="glossary-def">
+        A type variable that lets functions, interfaces, and classes operate on multiple types while preserving type safety.
+        <pre><code><span class="kw">function</span> <span class="fn">first</span>&lt;<span class="tp">T</span>&gt;(arr: <span class="tp">T</span>[]): <span class="tp">T</span> | <span class="tp">undefined</span> {
+  <span class="kw">return</span> arr[<span class="nm">0</span>];
+}
+<span class="kw">const</span> n = <span class="fn">first</span>([<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]); <span class="cm">// type: number | undefined</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ I ═══ -->
+  <h3 class="letter-anchor">I</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Index Signature</span>
+      <div class="glossary-def">
+        Defines the type for dynamic keys on an object. Syntax: <code>[key: K]: V</code>.
+        <pre><code><span class="kw">interface</span> <span class="tp">Env</span> {
+  [key: <span class="tp">string</span>]: <span class="tp">string</span> | <span class="tp">undefined</span>;
+}
+<span class="kw">const</span> env: <span class="tp">Env</span> = { HOME: <span class="st">"/home/user"</span> };</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Index Type</span>
+      <div class="glossary-def">
+        Using <code>T[K]</code> to look up the type of a property. <code>keyof T</code> gets all keys as a union.
+        <pre><code><span class="kw">function</span> <span class="fn">get</span>&lt;<span class="tp">T</span>, <span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> T&gt;(obj: T, key: K): T[K] {
+  <span class="kw">return</span> obj[key];
+}</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Intersection Type</span>
+      <div class="glossary-def">
+        Combines multiple types into one using <code>&amp;</code>. The result has all members from each constituent.
+        <pre><code><span class="kw">type</span> <span class="tp">Timestamped</span> = { createdAt: <span class="tp">Date</span> };
+<span class="kw">type</span> <span class="tp">User</span> = { name: <span class="tp">string</span> } & <span class="tp">Timestamped</span>;
+<span class="cm">// { name: string; createdAt: Date }</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ L ═══ -->
+  <h3 class="letter-anchor">L</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Literal Type</span>
+      <div class="glossary-def">
+        A type that represents exactly one value. String, number, and boolean literals are the most common.
+        <pre><code><span class="kw">type</span> <span class="tp">Direction</span> = <span class="st">"left"</span> | <span class="st">"right"</span>;
+<span class="kw">type</span> <span class="tp">Bit</span> = <span class="nm">0</span> | <span class="nm">1</span>;
+<span class="kw">type</span> <span class="tp">Yes</span> = <span class="kw">true</span>;</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ M ═══ -->
+  <h3 class="letter-anchor">M</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Mapped Type</span>
+      <div class="glossary-def">
+        Creates a new type by transforming every property of an existing type. Built-in utility types like <code>Partial</code> and <code>Readonly</code> are mapped types.
+        <pre><code><span class="kw">type</span> <span class="tp">Optional</span>&lt;<span class="tp">T</span>&gt; = {
+  [K <span class="kw">in</span> <span class="kw">keyof</span> T]?: T[K];
+};
+<span class="cm">// Equivalent to Partial&lt;T&gt;</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ N ═══ -->
+  <h3 class="letter-anchor">N</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Namespace</span>
+      <div class="glossary-def">
+        An organizational construct that groups related types, values, and functions. Largely replaced by ES modules but still used in <code>.d.ts</code> files.
+        <pre><code><span class="kw">namespace</span> <span class="tp">MathUtils</span> {
+  <span class="kw">export function</span> <span class="fn">square</span>(n: <span class="tp">number</span>): <span class="tp">number</span> {
+    <span class="kw">return</span> n * n;
+  }
+}
+<span class="kw">const</span> r = MathUtils.<span class="fn">square</span>(<span class="nm">4</span>); <span class="cm">// 16</span></code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Narrowing</span>
+      <div class="glossary-def">
+        The process of refining a type to a more specific one within a conditional branch. Achieved via <code>typeof</code>, <code>instanceof</code>, <code>in</code>, or discriminated unions.
+        <pre><code><span class="kw">function</span> <span class="fn">format</span>(x: <span class="tp">string</span> | <span class="tp">number</span>) {
+  <span class="kw">if</span> (<span class="kw">typeof</span> x === <span class="st">"string"</span>) {
+    <span class="kw">return</span> x.<span class="fn">toUpperCase</span>(); <span class="cm">// x: string</span>
+  }
+  <span class="kw">return</span> x.<span class="fn">toFixed</span>(<span class="nm">2</span>); <span class="cm">// x: number</span>
+}</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Never</span>
+      <div class="glossary-def">
+        The type of values that never occur. Used for unreachable code, exhaustive checks, and functions that always throw.
+        <pre><code><span class="kw">function</span> <span class="fn">fail</span>(msg: <span class="tp">string</span>): <span class="tp">never</span> {
+  <span class="kw">throw new</span> <span class="fn">Error</span>(msg);
+}
+<span class="kw">type</span> <span class="tp">Empty</span> = <span class="tp">string</span> & <span class="tp">number</span>; <span class="cm">// never — impossible</span></code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Nominal Typing</span>
+      <div class="glossary-def">
+        A type system where compatibility depends on <em>name</em>, not structure. TypeScript uses structural typing by default, but nominal patterns can be simulated.
+        <pre><code><span class="kw">type</span> <span class="tp">USD</span> = <span class="tp">number</span> & { __brand: <span class="st">"USD"</span> };
+<span class="kw">type</span> <span class="tp">EUR</span> = <span class="tp">number</span> & { __brand: <span class="st">"EUR"</span> };
+<span class="cm">// Can't accidentally mix USD and EUR</span></code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Nullish</span>
+      <div class="glossary-def">
+        Values that are <code>null</code> or <code>undefined</code>. The nullish coalescing operator <code>??</code> and optional chaining <code>?.</code> handle these.
+        <pre><code><span class="kw">const</span> name = user?.name ?? <span class="st">"Anonymous"</span>;
+<span class="cm">// Falls back only for null/undefined, not ""</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ O ═══ -->
+  <h3 class="letter-anchor">O</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Optional</span>
+      <div class="glossary-def">
+        A property or parameter that may be omitted. Denoted with <code>?</code>.
+        <pre><code><span class="kw">interface</span> <span class="tp">Config</span> {
+  host: <span class="tp">string</span>;
+  port?: <span class="tp">number</span>; <span class="cm">// optional — can be undefined</span>
+}
+<span class="kw">function</span> <span class="fn">greet</span>(name: <span class="tp">string</span>, title?: <span class="tp">string</span>) {}</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Overload</span>
+      <div class="glossary-def">
+        Multiple function signatures for the same function name. The implementation signature must be compatible with all overloads.
+        <pre><code><span class="kw">function</span> <span class="fn">parse</span>(input: <span class="tp">string</span>): <span class="tp">number</span>;
+<span class="kw">function</span> <span class="fn">parse</span>(input: <span class="tp">number</span>): <span class="tp">string</span>;
+<span class="kw">function</span> <span class="fn">parse</span>(input: <span class="tp">string</span> | <span class="tp">number</span>) {
+  <span class="kw">return typeof</span> input === <span class="st">"string"</span>
+    ? <span class="fn">parseInt</span>(input, <span class="nm">10</span>)
+    : String(input);
+}</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ P ═══ -->
+  <h3 class="letter-anchor">P</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Predicate (Type Predicate)</span>
+      <div class="glossary-def">
+        A function return type annotation that tells the compiler the argument has been narrowed. Syntax: <code>paramName is Type</code>.
+        <pre><code><span class="kw">function</span> <span class="fn">isString</span>(val: <span class="tp">unknown</span>): val <span class="kw">is</span> <span class="tp">string</span> {
+  <span class="kw">return typeof</span> val === <span class="st">"string"</span>;
+}
+<span class="kw">if</span> (<span class="fn">isString</span>(x)) {
+  x.<span class="fn">toUpperCase</span>(); <span class="cm">// TS knows x is string</span>
+}</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ R ═══ -->
+  <h3 class="letter-anchor">R</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Readonly</span>
+      <div class="glossary-def">
+        Prevents reassignment of properties or array elements. Applied via <code>readonly</code> modifier or the <code>Readonly&lt;T&gt;</code> utility type.
+        <pre><code><span class="kw">interface</span> <span class="tp">Point</span> {
+  <span class="kw">readonly</span> x: <span class="tp">number</span>;
+  <span class="kw">readonly</span> y: <span class="tp">number</span>;
+}
+<span class="kw">const</span> arr: <span class="tp">ReadonlyArray</span>&lt;<span class="tp">number</span>&gt; = [<span class="nm">1</span>, <span class="nm">2</span>];
+<span class="cm">// arr.push(3); // Error</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ S ═══ -->
+  <h3 class="letter-anchor">S</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">satisfies</span>
+      <div class="glossary-def">
+        Validates an expression against a type without widening or losing the inferred literal types. Introduced in TS 4.9.
+        <pre><code><span class="kw">const</span> palette = {
+  red: [<span class="nm">255</span>, <span class="nm">0</span>, <span class="nm">0</span>],
+  blue: <span class="st">"#0000ff"</span>,
+} <span class="kw">satisfies</span> <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">string</span> | <span class="tp">number</span>[]&gt;;
+<span class="cm">// palette.red is still inferred as number[]</span></code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Structural Typing</span>
+      <div class="glossary-def">
+        TypeScript's core type system — two types are compatible if they have the same <em>shape</em>, regardless of their names. Also called "duck typing."
+        <pre><code><span class="kw">interface</span> <span class="tp">Named</span> { name: <span class="tp">string</span>; }
+<span class="kw">const</span> user = { name: <span class="st">"Alice"</span>, age: <span class="nm">30</span> };
+<span class="kw">const</span> n: <span class="tp">Named</span> = user; <span class="cm">// OK — has a `name`</span></code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ T ═══ -->
+  <h3 class="letter-anchor">T</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Template Literal Type</span>
+      <div class="glossary-def">
+        Combines literal types using template syntax to create new string literal types.
+        <pre><code><span class="kw">type</span> <span class="tp">EventName</span> = <span class="st">`on${<span class="tp">Capitalize</span>&lt;<span class="tp">string</span>&gt;}`</span>;
+<span class="kw">type</span> <span class="tp">CSS</span> = <span class="st">`${<span class="tp">number</span>}${<span class="st">"px"</span> | <span class="st">"rem"</span>}`</span>;</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Tuple</span>
+      <div class="glossary-def">
+        An array with a fixed number of elements where each element has a known type (potentially different).
+        <pre><code><span class="kw">type</span> <span class="tp">Pair</span> = [<span class="tp">string</span>, <span class="tp">number</span>];
+<span class="kw">const</span> p: <span class="tp">Pair</span> = [<span class="st">"age"</span>, <span class="nm">25</span>];
+<span class="kw">type</span> <span class="tp">StringNums</span> = [<span class="tp">string</span>, ...<span class="tp">number</span>[]]; <span class="cm">// rest element</span></code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Type Guard</span>
+      <div class="glossary-def">
+        A runtime check that narrows a type within a scope. Built-in (<code>typeof</code>, <code>instanceof</code>, <code>in</code>) or custom (type predicates).
+        <pre><code><span class="kw">function</span> <span class="fn">isNonNull</span>&lt;<span class="tp">T</span>&gt;(x: T | <span class="tp">null</span>): x <span class="kw">is</span> T {
+  <span class="kw">return</span> x !== <span class="kw">null</span>;
+}</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Type Inference</span>
+      <div class="glossary-def">
+        The compiler automatically determines types when annotations are omitted. Occurs for variables, return types, generics, and more.
+        <pre><code><span class="kw">let</span> x = <span class="nm">42</span>;    <span class="cm">// inferred as number</span>
+<span class="kw">const</span> s = <span class="st">"hi"</span>; <span class="cm">// inferred as "hi" (literal)</span>
+<span class="kw">function</span> <span class="fn">add</span>(a: <span class="tp">number</span>, b: <span class="tp">number</span>) {
+  <span class="kw">return</span> a + b; <span class="cm">// return type inferred as number</span>
+}</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Type Literal</span>
+      <div class="glossary-def">
+        An anonymous object type written inline — similar to an interface but without a name.
+        <pre><code><span class="kw">function</span> <span class="fn">draw</span>(opts: { color: <span class="tp">string</span>; size: <span class="tp">number</span> }) {
+  <span class="cm">// opts is a type literal</span>
+}</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Type Variable</span>
+      <div class="glossary-def">
+        A placeholder type (like <code>&lt;T&gt;</code>) in generic functions, interfaces, or classes. Gets bound to a concrete type at each call site.
+        <pre><code><span class="kw">function</span> <span class="fn">identity</span>&lt;<span class="tp">T</span>&gt;(val: <span class="tp">T</span>): <span class="tp">T</span> {
+  <span class="kw">return</span> val; <span class="cm">// T is the type variable</span>
+}</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ U ═══ -->
+  <h3 class="letter-anchor">U</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Union Type</span>
+      <div class="glossary-def">
+        A type that can be one of several types, joined with <code>|</code>.
+        <pre><code><span class="kw">let</span> id: <span class="tp">string</span> | <span class="tp">number</span>;
+id = <span class="st">"abc"</span>; <span class="cm">// OK</span>
+id = <span class="nm">42</span>;    <span class="cm">// OK</span></code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">unknown</span>
+      <div class="glossary-def">
+        The type-safe counterpart to <code>any</code>. Accepts any value but requires narrowing before use.
+        <pre><code><span class="kw">let</span> x: <span class="tp">unknown</span> = <span class="fn">JSON</span>.<span class="fn">parse</span>(input);
+<span class="cm">// x.foo();     // Error — not narrowed</span>
+<span class="kw">if</span> (<span class="kw">typeof</span> x === <span class="st">"string"</span>) {
+  x.<span class="fn">toUpperCase</span>(); <span class="cm">// OK</span>
+}</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ V ═══ -->
+  <h3 class="letter-anchor">V</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Variadic</span>
+      <div class="glossary-def">
+        Related to variable-length argument lists. TypeScript handles these via rest parameters and tuple spread types.
+        <pre><code><span class="kw">function</span> <span class="fn">log</span>(...args: <span class="tp">unknown</span>[]): <span class="tp">void</span> {
+  console.<span class="fn">log</span>(...args);
+}
+<span class="kw">type</span> <span class="tp">Tail</span>&lt;<span class="tp">T</span> <span class="kw">extends</span> <span class="tp">any</span>[]&gt; = T <span class="kw">extends</span> [infer _, ...infer Rest]
+  ? Rest : never;</code></pre>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">void</span>
+      <div class="glossary-def">
+        The return type for functions that don't return a value. Different from <code>undefined</code> — it explicitly means "no return."
+        <pre><code><span class="kw">function</span> <span class="fn">log</span>(msg: <span class="tp">string</span>): <span class="tp">void</span> {
+  console.<span class="fn">log</span>(msg);
+}</code></pre>
+      </div>
+    </li>
+  </ul>
+
+  <footer style="text-align: center; padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 2px solid var(--border);">
+    <a href="../lessons/0001-fundamentals.html" class="back-link">← Back to Lessons</a>
+  </footer>
+
+</body>
+</html>

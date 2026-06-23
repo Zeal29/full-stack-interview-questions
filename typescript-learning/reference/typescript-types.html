@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeScript Type System — Quick Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .ref-header {
+      text-align: center;
+      padding: var(--space-2xl) 0 var(--space-xl);
+      border-bottom: 2px solid var(--border);
+      margin-bottom: var(--space-2xl);
+    }
+    .ref-header .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 100px;
+      margin-bottom: var(--space-md);
+    }
+    .ref-header h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: var(--space-sm);
+      line-height: 1.2;
+    }
+    .ref-header .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* Reference-specific table styles */
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: var(--space-md) 0 var(--space-xl);
+      font-size: 0.9rem;
+    }
+    .ref-table th {
+      text-align: left;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-alt);
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border);
+    }
+    .ref-table td {
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .ref-table tr:nth-child(even) td {
+      background: var(--surface-alt);
+    }
+    .ref-table code {
+      font-size: 0.82em;
+    }
+
+    .type-name {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    /* Inline code blocks in tables */
+    .ref-table pre {
+      margin: var(--space-xs) 0;
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: var(--space-2xl) 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background var(--transition-fast);
+    }
+    .back-link:hover {
+      background: var(--primary-dark);
+    }
+
+    @media print {
+      .back-link { display: none; }
+      .ref-table tr:nth-child(even) td { background: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ref-header">
+    <div class="badge">Quick Reference</div>
+    <h1>TypeScript Type System</h1>
+    <p class="subtitle">Primitives, type operators, literal types, and common patterns — all in one scannable page.</p>
+  </header>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PRIMITIVES                                   -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Primitive Types</h2>
+    <p>JavaScript primitives, fully typed in TypeScript.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Type</th><th>Description</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">string</span></td>
+          <td>Textual data</td>
+          <td><pre><code><span class="kw">let</span> name: <span class="tp">string</span> = <span class="st">"Alice"</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">number</span></td>
+          <td>All numeric values (int + float)</td>
+          <td><pre><code><span class="kw">let</span> age: <span class="tp">number</span> = <span class="nm">30</span>;
+<span class="kw">let</span> pi: <span class="tp">number</span> = <span class="nm">3.14</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">boolean</span></td>
+          <td><code>true</code> or <code>false</code></td>
+          <td><pre><code><span class="kw">let</span> active: <span class="tp">boolean</span> = <span class="kw">true</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">null</span></td>
+          <td>Intentional absence of value</td>
+          <td><pre><code><span class="kw">let</span> empty: <span class="tp">null</span> = <span class="kw">null</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">undefined</span></td>
+          <td>Variable declared but not assigned</td>
+          <td><pre><code><span class="kw">let</span> x: <span class="tp">undefined</span> = <span class="kw">undefined</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">bigint</span></td>
+          <td>Arbitrarily large integers</td>
+          <td><pre><code><span class="kw">let</span> big: <span class="tp">bigint</span> = <span class="nm">9007199254740991n</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">symbol</span></td>
+          <td>Globally unique identifiers</td>
+          <td><pre><code><span class="kw">let</span> sym: <span class="tp">symbol</span> = <span class="fn">Symbol</span>(<span class="st">"id"</span>);</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">object</span></td>
+          <td>Any non-primitive value</td>
+          <td><pre><code><span class="kw">let</span> obj: <span class="tp">object</span> = { <span class="st">key</span>: <span class="st">"val"</span> };</code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- TYPESCRIPT-SPECIFIC TYPES                    -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>TypeScript-Specific Types</h2>
+    <p>Types that don't exist at runtime — purely for compile-time safety.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Type</th><th>Purpose</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">any</span></td>
+          <td>Opt out of type checking entirely. <strong>Avoid.</strong></td>
+          <td><pre><code><span class="kw">let</span> data: <span class="tp">any</span> = <span class="nm">42</span>;
+data = <span class="st">"now a string"</span>; <span class="cm">// OK, unsafe</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">unknown</span></td>
+          <td>Safe alternative to <code>any</code> — requires narrowing</td>
+          <td><pre><code><span class="kw">let</span> val: <span class="tp">unknown</span> = <span class="st">"hello"</span>;
+<span class="kw">if</span> (<span class="kw">typeof</span> val === <span class="st">"string"</span>) {
+  val.<span class="fn">toUpperCase</span>(); <span class="cm">// OK after narrowing</span>
+}</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">void</span></td>
+          <td>Function returns nothing</td>
+          <td><pre><code><span class="kw">function</span> <span class="fn">log</span>(msg: <span class="tp">string</span>): <span class="tp">void</span> {
+  console.<span class="fn">log</span>(msg);
+}</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">never</span></td>
+          <td>Unreachable / always throws</td>
+          <td><pre><code><span class="kw">function</span> <span class="fn">fail</span>(msg: <span class="tp">string</span>): <span class="tp">never</span> {
+  <span class="kw">throw new</span> <span class="fn">Error</span>(msg);
+}</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Array&lt;T&gt;</span></td>
+          <td>Homogeneous list of <code>T</code></td>
+          <td><pre><code><span class="kw">let</span> nums: <span class="tp">Array</span>&lt;<span class="tp">number</span>&gt; = [<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>];
+<span class="kw">let</span> names: <span class="tp">string</span>[] = [<span class="st">"a"</span>, <span class="st">"b"</span>]; <span class="cm">// shorthand</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Tuple</span></td>
+          <td>Fixed-length, fixed-type array</td>
+          <td><pre><code><span class="kw">let</span> pair: [<span class="tp">string</span>, <span class="tp">number</span>] = [<span class="st">"age"</span>, <span class="nm">30</span>];
+<span class="kw">let</span> rgb: [<span class="tp">number</span>, <span class="tp">number</span>, <span class="tp">number</span>] = [<span class="nm">255</span>, <span class="nm">0</span>, <span class="nm">128</span>];</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Enum</span></td>
+          <td>Named constant set</td>
+          <td><pre><code><span class="kw">enum</span> <span class="tp">Direction</span> {
+  Up = <span class="st">"UP"</span>,
+  Down = <span class="st">"DOWN"</span>,
+}
+<span class="kw">let</span> dir: <span class="tp">Direction</span> = Direction.Up;</code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- TYPE OPERATORS                               -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Type Operators</h2>
+    <p>The building blocks for composing types.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Operator</th><th>Name</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">|</span></td>
+          <td>Union — value can be one of several types</td>
+          <td><pre><code><span class="kw">let</span> id: <span class="tp">string</span> | <span class="tp">number</span>;
+id = <span class="st">"abc"</span>; <span class="cm">// OK</span>
+id = <span class="nm">42</span>;    <span class="cm">// OK</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">&amp;</span></td>
+          <td>Intersection — combines all members</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Named</span> = { name: <span class="tp">string</span> };
+<span class="kw">type</span> <span class="tp">Aged</span> = { age: <span class="tp">number</span> };
+<span class="kw">type</span> <span class="tp">Person</span> = <span class="tp">Named</span> & <span class="tp">Aged</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">keyof</span></td>
+          <td>Extract keys of a type as a union</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Keys</span> = <span class="kw">keyof</span> { x: <span class="tp">number</span>; y: <span class="tp">number</span> };
+<span class="cm">// "x" | "y"</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">typeof</span></td>
+          <td>Capture the type of a value</td>
+          <td><pre><code><span class="kw">const</span> config = { debug: <span class="kw">true</span>, port: <span class="nm">3000</span> };
+<span class="kw">type</span> <span class="tp">Config</span> = <span class="kw">typeof</span> config;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">as</span></td>
+          <td>Type assertion (override inferred type)</td>
+          <td><pre><code><span class="kw">let</span> val = <span class="st">"hello"</span> <span class="kw">as</span> <span class="tp">string</span> | <span class="tp">number</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">as const</span></td>
+          <td>Assert literal types + readonly</td>
+          <td><pre><code><span class="kw">const</span> perms = [<span class="st">"read"</span>, <span class="st">"write"</span>] <span class="kw">as const</span>;
+<span class="cm">// type: readonly ["read", "write"]</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">satisfies</span></td>
+          <td>Validate against a type without widening</td>
+          <td><pre><code><span class="kw">const</span> palette = {
+  red: [<span class="nm">255</span>, <span class="nm">0</span>, <span class="nm">0</span>],
+  green: <span class="st">"#00ff00"</span>,
+} <span class="kw">satisfies</span> <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">string</span> | <span class="tp">number</span>[]&gt;;</code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- LITERAL TYPES                                -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Literal Types</h2>
+    <p>Types that represent exact values — the narrowest possible type.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Kind</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>String literal</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Method</span> = <span class="st">"GET"</span> | <span class="st">"POST"</span> | <span class="st">"DELETE"</span>;
+<span class="kw">let</span> m: <span class="tp">Method</span> = <span class="st">"GET"</span>; <span class="cm">// only these 3 strings</span></code></pre></td>
+        </tr>
+        <tr>
+          <td>Number literal</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Port</span> = <span class="nm">3000</span> | <span class="nm">8080</span> | <span class="nm">443</span>;
+<span class="kw">let</span> p: <span class="tp">Port</span> = <span class="nm">3000</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td>Boolean literal</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Truth</span> = <span class="kw">true</span>;
+<span class="kw">let</span> t: <span class="tp">Truth</span> = <span class="kw">true</span>; <span class="cm">// only true</span></code></pre></td>
+        </tr>
+        <tr>
+          <td>Template literal</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Event</span> = <span class="st">`on${<span class="tp">Capitalize</span>&lt;<span class="tp">string</span>&gt;}`</span>;
+<span class="cm">// "onClick", "onHover", etc.</span>
+
+<span class="kw">type</span> <span class="tp">CSSValue</span> = <span class="st">`${<span class="tp">number</span>}${<span class="st">"px"</span> | <span class="st">"rem"</span> | <span class="st">"em"</span>}`</span>;
+<span class="kw">let</span> w: <span class="tp">CSSValue</span> = <span class="st">"16px"</span>;</code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- COMMON PATTERNS                              -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Common Patterns</h2>
+    <p>The patterns you'll use every day.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Pattern</th><th>Syntax</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Optional property</td>
+          <td><code>prop?: T</code></td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  name: <span class="tp">string</span>;
+  email?: <span class="tp">string</span>; <span class="cm">// may be undefined</span>
+}</code></pre></td>
+        </tr>
+        <tr>
+          <td>Readonly</td>
+          <td><code>readonly</code></td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">Config</span> {
+  <span class="kw">readonly</span> apiKey: <span class="tp">string</span>;
+}
+<span class="cm">// or</span>
+<span class="kw">const</span> arr: <span class="tp">ReadonlyArray</span>&lt;<span class="tp">number</span>&gt; = [<span class="nm">1</span>, <span class="nm">2</span>];</code></pre></td>
+        </tr>
+        <tr>
+          <td>Index signature</td>
+          <td><code>[key: K]: V</code></td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">StringMap</span> {
+  [key: <span class="tp">string</span>]: <span class="tp">string</span>;
+}
+<span class="kw">let</span> dict: <span class="tp">StringMap</span> = { hello: <span class="st">"world"</span> };</code></pre></td>
+        </tr>
+        <tr>
+          <td>Function type</td>
+          <td><code>(params) =&gt; return</code></td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Callback</span> = (data: <span class="tp">string</span>) => <span class="tp">void</span>;
+<span class="kw">type</span> <span class="tp">Adder</span> = (a: <span class="tp">number</span>, b: <span class="tp">number</span>) => <span class="tp">number</span>;</code></pre></td>
+        </tr>
+        <tr>
+          <td>Generic function</td>
+          <td><code>&lt;T&gt;(...) =&gt; ...</code></td>
+          <td><pre><code><span class="kw">function</span> <span class="fn">identity</span>&lt;<span class="tp">T</span>&gt;(val: <span class="tp">T</span>): <span class="tp">T</span> {
+  <span class="kw">return</span> val;
+}
+<span class="kw">const</span> r = <span class="fn">identity</span>(<span class="st">"hi"</span>); <span class="cm">// type: string</span></code></pre></td>
+        </tr>
+        <tr>
+          <td>Type guard (narrowing)</td>
+          <td><code>typeof</code> / <code>in</code> / <code>instanceof</code></td>
+          <td><pre><code><span class="kw">function</span> <span class="fn">format</span>(x: <span class="tp">string</span> | <span class="tp">number</span>) {
+  <span class="kw">if</span> (<span class="kw">typeof</span> x === <span class="st">"string"</span>) {
+    <span class="kw">return</span> x.<span class="fn">padStart</span>(<span class="nm">10</span>);
+  }
+  <span class="kw">return</span> x.<span class="fn">toFixed</span>(<span class="nm">2</span>);
+}</code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer style="text-align: center; padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 2px solid var(--border);">
+    <a href="../lessons/0001-fundamentals.html" class="back-link">← Back to Lessons</a>
+  </footer>
+
+</body>
+</html>

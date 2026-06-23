@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Special Types & Configuration</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 4 of 11</span>
+    <h1>Special Types & Configuration</h1>
+    <p class="subtitle">tsconfig, void, never, unknown, and literal types</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Configure a TypeScript project with tsconfig.json</li>
+      <li>Distinguish between <code>void</code>, <code>never</code>, and <code>unknown</code></li>
+      <li>Use literal types for precise type constraints</li>
+    </ul>
+  </div>
+
+  <!-- Section: tsconfig.json -->
+  <div class="content-section">
+    <h2>tsconfig.json — Your TypeScript Seatbelt</h2>
+    <p>
+      Every serious TypeScript project starts with a <code>tsconfig.json</code> file. It tells the compiler (<code>tsc</code>) how to behave — what JS version to target, which files to include, and how strict the type checking should be. The single most important option is <code>strict: true</code>, which enables all strict type-checking options at once.
+    </p>
+    <p>
+      Think of <code>tsconfig.json</code> as the project's TypeScript rulebook. Without it, you're running TypeScript in "loose mode" — and loose TypeScript misses the very bugs you adopted TypeScript to catch.
+    </p>
+  </div>
+
+  <!-- Section: Special Types Overview -->
+  <div class="content-section">
+    <h2>Special Types — void, never, unknown</h2>
+    <p>
+      TypeScript has three special types that serve distinct purposes. <code>void</code> marks functions that return nothing. <code>never</code> marks code paths that should never be reached. <code>unknown</code> is the type-safe alternative to <code>any</code> — you can assign anything to it, but you must narrow the type before using it. Understanding the difference between these three is a common interview topic and a practical daily skill.
+    </p>
+  </div>
+
+  <!-- Section: Literal Types -->
+  <div class="content-section">
+    <h2>Literal Types — Exactly This Value</h2>
+    <p>
+      Normally, a type describes a <em>category</em> of values — <code>string</code> means any string. Literal types narrow that down to <strong>one specific value</strong>. Combine them with unions to create precise, self-documenting constraints: <code>type Direction = "left" | "right" | "up" | "down"</code>. The compiler will catch any typo or invalid assignment at build time.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q11 — tsconfig.json -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What is <code>tsconfig.json</code> and what are its key options?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>tsconfig.json</code> is the <strong>configuration file for the TypeScript compiler</strong>. It tells <code>tsc</code> how to compile your project — which files to include, what JS version to output, and how strict the checking should be.
+          </p>
+          <p><strong>Key options:</strong></p>
+          <ul>
+            <li><code>strict: true</code> — Enables all strict type-checking options (the most important one)</li>
+            <li><code>target</code> — The JS version to compile to (e.g., <code>"ES2020"</code>, <code>"ESNext"</code>)</li>
+            <li><code>module</code> — The module system (e.g., <code>"commonjs"</code>, <code>"ESNext"</code>)</li>
+            <li><code>outDir</code> — Where to emit compiled JS files</li>
+            <li><code>include</code> / <code>exclude</code> — Which files to compile or skip</li>
+          </ul>
+<pre><code>{
+  <span class="st">"compilerOptions"</span>: {
+    <span class="st">"strict"</span>: <span class="kw">true</span>,
+    <span class="st">"target"</span>: <span class="st">"ES2020"</span>,
+    <span class="st">"module"</span>: <span class="st">"ESNext"</span>,
+    <span class="st">"outDir"</span>: <span class="st">"./dist"</span>,
+    <span class="st">"include"</span>: [<span class="st">"src/**/*"</span>]
+  }
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Always enable <code>strict: true</code> — it's the <strong>seatbelt of TypeScript</strong>. Without it, you're driving without protection.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q12 — void -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What is the <code>void</code> type?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>void</code> means a <strong>function returns nothing</strong>. It's the return type you assign when a function doesn't produce a value — it does work (like logging, saving, updating state) but doesn't hand anything back to the caller.
+          </p>
+          <p>
+            <code>void</code> is <strong>different from <code>undefined</code></strong>. A function returning <code>void</code> <em>can</em> return <code>undefined</code> implicitly, but <code>void</code> communicates intent: "this function is not meant to return a value."
+          </p>
+<pre><code><span class="kw">function</span> <span class="fn">log</span>(msg: <span class="tp">string</span>): <span class="tp">void</span> {
+  console.<span class="fn">log</span>(msg);
+}
+
+<span class="kw">function</span> <span class="fn">saveUser</span>(user: <span class="tp">User</span>): <span class="tp">void</span> {
+  db.<span class="fn">save</span>(user);
+  <span class="cm">// No return — just performs a side effect</span>
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>void</code> = <strong>"returns nothing"</strong>. Think of it as a void — an empty space where a return value would be.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q13 — never -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What is the <code>never</code> type?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>never</code> represents values that <strong>never occur</strong>. It's used in two scenarios: (1) functions that <strong>never return</strong> — they throw an error or loop forever, and (2) <strong>exhaustive type checking</strong> in switch statements, where the <code>never</code> branch should be unreachable.
+          </p>
+          <p>
+            If TypeScript infers <code>never</code> somewhere you didn't expect, it's usually telling you that your logic is <em>contradictory</em> — two types that can't overlap.
+          </p>
+<pre><code><span class="cm">// Function that never returns — always throws</span>
+<span class="kw">function</span> <span class="fn">fail</span>(msg: <span class="tp">string</span>): <span class="tp">never</span> {
+  <span class="kw">throw new</span> Error(msg);
+}
+
+<span class="cm">// Exhaustive switch checking</span>
+<span class="kw">type</span> <span class="tp">Shape</span> = <span class="st">"circle"</span> | <span class="st">"square"</span>;
+
+<span class="kw">function</span> <span class="fn">area</span>(shape: <span class="tp">Shape</span>): <span class="tp">number</span> {
+  <span class="kw">switch</span> (shape) {
+    <span class="kw">case</span> <span class="st">"circle"</span>: <span class="kw">return</span> Math.PI;
+    <span class="kw">case</span> <span class="st">"square"</span>: <span class="kw">return</span> <span class="nm">1</span>;
+    <span class="kw">default</span>:
+      <span class="cm">// shape is `never` here — unreachable!</span>
+      <span class="kw">const</span> _exhaustive: <span class="tp">never</span> = shape;
+      <span class="kw">return</span> _exhaustive;
+  }
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>never</code> = <strong>"impossible"</strong>. If a value is <code>never</code>, something went wrong — or you're doing exhaustive checking.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q14 — unknown deep dive -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What is the <code>unknown</code> type and how do you use it?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>unknown</code> is the <strong>type-safe counterpart of <code>any</code></strong>. You can assign <em>any</em> value to an <code>unknown</code> variable, but you <strong>cannot use it without narrowing first</strong>. This forces you to prove what the type is before performing operations on it.
+          </p>
+          <p>
+            <strong>Narrowing techniques:</strong> <code>typeof</code> checks, <code>instanceof</code>, equality comparison, custom type guards, or type assertions.
+          </p>
+<pre><code><span class="kw">let</span> value: <span class="tp">unknown</span> = <span class="fn">fetchData</span>();
+
+<span class="cm">// ❌ Can't use directly — TypeScript blocks this</span>
+value.<span class="fn">toUpperCase</span>(); <span class="cm">// Error!</span>
+
+<span class="cm">// ✅ Narrow with typeof</span>
+<span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="st">"string"</span>) {
+  console.<span class="fn">log</span>(value.<span class="fn">toUpperCase</span>()); <span class="cm">// OK</span>
+}
+
+<span class="cm">// ✅ Narrow with instanceof</span>
+<span class="kw">if</span> (value <span class="kw">instanceof</span> Error) {
+  console.<span class="fn">log</span>(value.message); <span class="cm">// OK</span>
+}
+
+<span class="cm">// ✅ Custom type guard</span>
+<span class="kw">function</span> <span class="fn">isString</span>(v: <span class="tp">unknown</span>): v <span class="kw">is</span> <span class="tp">string</span> {
+  <span class="kw">return typeof</span> v === <span class="st">"string"</span>;
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>unknown</code> = <strong>"I don't know, prove it"</strong>. Always prefer <code>unknown</code> over <code>any</code> — it gives you safety without sacrificing flexibility.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q19 — Literal Types -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">5</span>
+          <span>What are literal types?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Literal types restrict a variable to <strong>one exact value</strong> — a specific string, number, or boolean. You almost always combine them with <strong>union types</strong> to define a fixed set of allowed values.
+          </p>
+          <p>
+            This is far more precise than using <code>string</code> — the compiler will catch typos and invalid values at build time, not runtime.
+          </p>
+<pre><code><span class="cm">// String literal types</span>
+<span class="kw">type</span> <span class="tp">Direction</span> = <span class="st">"left"</span> | <span class="st">"right"</span> | <span class="st">"up"</span> | <span class="st">"down"</span>;
+
+<span class="kw">function</span> <span class="fn">move</span>(dir: <span class="tp">Direction</span>): <span class="tp">void</span> {
+  <span class="cm">// ...</span>
+}
+
+<span class="fn">move</span>(<span class="st">"left"</span>);   <span class="cm">// ✅</span>
+<span class="fn">move</span>(<span class="st">"diagonal"</span>); <span class="cm">// ❌ Error! Not in the union</span>
+
+<span class="cm">// Number literal types</span>
+<span class="kw">type</span> <span class="tp">DiceRoll</span> = <span class="nm">1</span> | <span class="nm">2</span> | <span class="nm">3</span> | <span class="nm">4</span> | <span class="nm">5</span> | <span class="nm">6</span>;
+
+<span class="cm">// Boolean literal types</span>
+<span class="kw">type</span> <span class="tp">Truthy</span> = <span class="kw">true</span>;</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Literal types = <strong>"exactly this value"</strong>. Not "a string" — but specifically <code>"left"</code> or <code>"right"</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. Which <code>tsconfig.json</code> option enables all strict type-checking rules?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>strictMode: true</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>strict: true</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>typeCheck: "strict"</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>forceTypes: true</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>strict: true</code> enables all strict type-checking options — always turn it on.</div>
+      <div class="quiz-feedback incorrect">❌ The correct option is <code>strict: true</code>. It's the single setting that enables all strict checks at once.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. Which type represents values that <strong>never occur</strong>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>void</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>undefined</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>never</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>null</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>never</code> represents values that never occur — infinite loops, always-throwing functions, and exhaustive checks.</div>
+      <div class="quiz-feedback incorrect">❌ <code>never</code> is the type for values that never occur. <code>void</code> means "returns nothing", not "impossible".</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. What defines a <strong>literal type</strong>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> A type restricted to one exact value</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A type that can be any string</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> A type that only works with numbers</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> A type that disables type checking</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Literal types restrict a variable to one exact value — e.g., <code>"left" | "right"</code>, not just <code>string</code>.</div>
+      <div class="quiz-feedback incorrect">❌ A literal type is restricted to one exact value (like <code>"left"</code> or <code>42</code>), not a broad category like <code>string</code>.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Confused about void vs never vs unknown? Ask your AI teacher — these distinctions are crucial for interviews.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0003-generics.html">← Previous: Generics</a>
+    <a href="0005-functions-properties.html">Next: Functions & Properties →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

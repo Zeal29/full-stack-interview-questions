@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 9 — TypeScript Patterns</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 9 of 11</span>
+    <h1>TypeScript Patterns</h1>
+    <p class="subtitle">Declaration merging, satisfies, decorators, and overloading</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Use declaration merging to extend third-party types</li>
+      <li>Choose between <code>satisfies</code> and type annotations</li>
+      <li>Write function overloads for type-safe APIs</li>
+    </ul>
+  </div>
+
+  <!-- Section: TypeScript Patterns Overview -->
+  <div class="content-section">
+    <h2>TypeScript Patterns Overview</h2>
+    <p>
+      TypeScript offers several advanced patterns that go beyond basic type annotations. These patterns let you <strong>extend existing types without modifying source files</strong>, <strong>validate types while preserving specificity</strong>, <strong>add metadata to classes via decorators</strong>, and <strong>create precise function signatures</strong>. Mastering these patterns is essential for working with large codebases and popular frameworks.
+    </p>
+    <p>
+      This lesson covers six key patterns: declaration merging, the <code>typeof</code> type operator, the <code>satisfies</code> operator, abstract classes vs interfaces, decorators, and function overloading.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 — Declaration Merging (Q24) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What is declaration merging in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <strong>Declaration merging</strong> means that when you declare two interfaces with the same name, TypeScript automatically combines their members into a single interface. This does <strong>not</strong> work with <code>type</code> aliases — only interfaces merge.
+          </p>
+          <p>
+            This is commonly used to <strong>extend third-party library types</strong> without modifying the original source files. For example, augmenting a module's exported interface in your own project.
+          </p>
+<pre><code><span class="cm">// Original interface (e.g., in a library)</span>
+<span class="kw">interface</span> <span class="tp">Window</span> {
+  title: <span class="tp">string</span>;
+}
+
+<span class="cm">// Your extension — merged automatically</span>
+<span class="kw">interface</span> <span class="tp">Window</span> {
+  customProp: <span class="tp">number</span>;
+}
+
+<span class="cm">// Now Window has both 'title' and 'customProp'</span>
+<span class="kw">const</span> w: <span class="tp">Window</span> = { title: <span class="st">"app"</span>, customProp: <span class="nm">42</span> };</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Only <strong>interfaces</strong> merge, not types. Think of it as "interfaces are open for extension, types are sealed."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 — typeof (Q25) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>How does <code>typeof</code> work in TypeScript type positions?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            In TypeScript's <strong>type position</strong>, <code>typeof</code> extracts the type from a runtime value. It creates a type that mirrors the shape of the value. This is different from JavaScript's <code>typeof</code>, which returns a string like <code>"string"</code> or <code>"object"</code> at runtime.
+          </p>
+          <p>
+            This pattern is especially useful for deriving types from configuration objects or constants — write the value once, infer the type automatically.
+          </p>
+<pre><code><span class="kw">const</span> config = {
+  host: <span class="st">"localhost"</span>,
+  port: <span class="nm">3000</span>,
+  debug: <span class="kw">true</span>,
+};
+
+<span class="cm">// typeof extracts the shape as a type</span>
+<span class="kw">type</span> <span class="tp">Config</span> = <span class="kw">typeof</span> config;
+<span class="cm">// { host: string; port: number; debug: boolean }</span>
+
+<span class="kw">const</span> myConfig: <span class="tp">Config</span> = {
+  host: <span class="st">"prod.example.com"</span>,
+  port: <span class="nm">8080</span>,
+  debug: <span class="kw">false</span>,
+};</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>typeof</code> in type position = <strong>"copy the type of this value"</strong>. JS <code>typeof</code> returns a string. TS <code>typeof</code> returns a type.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 — satisfies (Q26) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What does the <code>satisfies</code> operator do?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            The <code>satisfies</code> operator <strong>validates that a value matches a type without widening it</strong>. Unlike a type annotation (<code>: Type</code>), which widens the inferred type, <code>satisfies</code> preserves the original literal types while still checking conformance.
+          </p>
+          <p>
+            This means you get both <strong>type safety</strong> (the value is checked against the broader type) and <strong>type precision</strong> (the inferred type keeps its specific literals).
+          </p>
+<pre><code><span class="kw">type</span> <span class="tp">Colors</span> = <span class="st">"red"</span> | <span class="st">"green"</span> | <span class="st">"blue"</span> | <span class="st">"black"</span>;
+
+<span class="cm">// With type annotation — type is widened to Record&lt;string, Colors&gt;</span>
+<span class="kw">const</span> palette1: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">Colors</span>&gt; = {
+  primary: <span class="st">"red"</span>,
+  secondary: <span class="st">"blue"</span>,
+};
+palette1.primary; <span class="cm">// type is Colors, NOT "red"</span>
+
+<span class="cm">// With satisfies — preserves literal types!</span>
+<span class="kw">const</span> palette2 = {
+  primary: <span class="st">"red"</span>,
+  secondary: <span class="st">"blue"</span>,
+} <span class="kw">satisfies</span> <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">Colors</span>&gt;;
+palette2.primary; <span class="cm">// type is "red" (literal preserved!)</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>satisfies</code> = <strong>"check the type but keep the specifics"</strong>. Annotation widens. Satisfies validates without losing detail.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 — Abstract Class vs Interface (Q33) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What is the difference between an abstract class and an interface?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            An <strong>abstract class</strong> provides both a contract and shared implementation (it produces runtime JavaScript code). An <strong>interface</strong> provides only a contract with no runtime code at all — it's completely erased during compilation.
+          </p>
+          <p>
+            Use <strong>interfaces</strong> for maximum flexibility (a class can implement many interfaces). Use <strong>abstract classes</strong> when you need shared default logic that subclasses can inherit.
+          </p>
+<pre><code><span class="cm">// Abstract class — has runtime code + contract</span>
+<span class="kw">abstract class</span> <span class="tp">Animal</span> {
+  <span class="kw">abstract</span> name: <span class="tp">string</span>;
+  move() { <span class="cm">// shared implementation</span>
+    console.log(<span class="st">`</span>${<span class="kw">this</span>.name}<span class="st"> moves`</span>);
+  }
+}
+
+<span class="cm">// Interface — contract only, no runtime code</span>
+<span class="kw">interface</span> <span class="tp">Loggable</span> {
+  log(): <span class="tp">void</span>;
+}
+
+<span class="cm">// A class can extend one abstract class</span>
+<span class="cm">// but implement many interfaces</span>
+<span class="kw">class</span> <span class="tp">Dog</span> <span class="kw">extends</span> <span class="tp">Animal</span> <span class="kw">implements</span> <span class="tp">Loggable</span> {
+  name = <span class="st">"Dog"</span>;
+  log() { console.log(<span class="kw">this</span>.name); }
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Abstract class = <strong>code + contract</strong> (runtime). Interface = <strong>contract only</strong> (compile-time only). Prefer interfaces for flexibility, abstract classes for shared logic.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q5 — Decorators (Q35) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">5</span>
+          <span>What are decorators in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <strong>Decorators</strong> are functions that modify the behavior of classes, methods, properties, or parameters. They are an <strong>experimental feature</strong> in TypeScript — you must enable <code>experimentalDecorators: true</code> in your <code>tsconfig.json</code>.
+          </p>
+          <p>
+            Decorators are heavily used in frameworks like <strong>NestJS</strong> and <strong>Angular</strong> for dependency injection, route definitions, validation, and more. Think of them as "wrappers" that add metadata or behavior to a target.
+          </p>
+<pre><code><span class="kw">function</span> Log(target: <span class="tp">any</span>, key: <span class="tp">string</span>, descriptor: <span class="tp">PropertyDescriptor</span>) {
+  <span class="kw">const</span> original = descriptor.value;
+  descriptor.value = <span class="kw">function</span> (...args: <span class="tp">any</span>[]) {
+    console.log(<span class="st">`Calling </span>${key}<span class="st"> with`</span>, args);
+    <span class="kw">return</span> original.call(<span class="kw">this</span>, ...args);
+  };
+}
+
+<span class="kw">class</span> <span class="tp">UserService</span> {
+  <span class="cm">@Log</span>
+  getUser(id: <span class="tp">number</span>) {
+    <span class="kw">return</span> { id, name: <span class="st">"Ali"</span> };
+  }
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Decorators = <strong>"wrap this with extra behavior"</strong>. They're functions that intercept and enhance classes, methods, and properties. Enable with <code>experimentalDecorators</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q6 — Function Overloading (Q36) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">6</span>
+          <span>What is function overloading in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <strong>Function overloading</strong> lets you declare multiple function signatures (overloads) with different parameter types, backed by a single implementation. The implementation signature must be compatible with all overloads.
+          </p>
+          <p>
+            This gives callers precise return types depending on what arguments they pass — much better than a single catch-all signature with <code>any</code>.
+          </p>
+<pre><code><span class="cm">// Overload signatures</span>
+<span class="kw">function</span> parse(input: <span class="tp">string</span>): <span class="tp">number</span>;
+<span class="kw">function</span> parse(input: <span class="tp">number</span>): <span class="tp">string</span>;
+<span class="cm">// Implementation — must handle all overloads</span>
+<span class="kw">function</span> parse(input: <span class="tp">string</span> | <span class="tp">number</span>): <span class="tp">string</span> | <span class="tp">number</span> {
+  <span class="kw">if</span> (<span class="kw">typeof</span> input === <span class="st">"string"</span>) <span class="kw">return</span> Number(input);
+  <span class="kw">return</span> String(input);
+}
+
+<span class="kw">const</span> a = parse(<span class="st">"42"</span>);  <span class="cm">// type: number</span>
+<span class="kw">const</span> b = parse(<span class="nm">42</span>);    <span class="cm">// type: string</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Function overloading = <strong>different signatures, one implementation</strong>. The overloads describe what the caller sees. The implementation handles all cases internally.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. Which of these supports declaration merging?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>type</code> aliases</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>interface</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>enum</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>class</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Only interfaces merge when declared with the same name. Types do not.</div>
+      <div class="quiz-feedback incorrect">❌ Only <code>interface</code> supports declaration merging. <code>type</code> aliases with the same name will produce an error.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. What does <code>satisfies</code> do that a type annotation doesn't?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> It adds runtime validation</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> It converts the value to the target type</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> It validates against a type while preserving literal types</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It makes the value immutable</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>satisfies</code> checks conformance without widening — literal types like <code>"red"</code> stay as <code>"red"</code>, not <code>string</code>.</div>
+      <div class="quiz-feedback incorrect">❌ <code>satisfies</code> validates the value matches a type but preserves the original (narrower) inferred type instead of widening it.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. In function overloading, the implementation signature must be:</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Compatible with all overload signatures</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> More restrictive than the overloads</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Identical to the first overload</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Written as a separate function</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! The implementation must accept all parameter combinations from the overload signatures.</div>
+      <div class="quiz-feedback incorrect">❌ The implementation signature must be broad enough to handle all overloads — it's the union of all overload parameter types.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Have questions about TypeScript patterns? Ask your AI teacher — no question is too basic.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0008-advanced-features.html">← Previous: Advanced Features</a>
+    <a href="0010-advanced-ts.html">Next: Advanced TypeScript →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

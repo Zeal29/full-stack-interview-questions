@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7 — Utility Types</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 7 of 11</span>
+    <h1>Utility Types</h1>
+    <p class="subtitle">Built-in type transformers: Partial, Pick, Omit, and more</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Understand mapped types as the foundation of utility types</li>
+      <li>Use all major utility types correctly</li>
+      <li>Choose between Omit and Pick for specific scenarios</li>
+      <li>Extract function return types with ReturnType</li>
+    </ul>
+  </div>
+
+  <!-- Section: Utility Types Reference -->
+  <div class="content-section">
+    <h2>Utility Types Reference Table</h2>
+    <p>
+      TypeScript ships with a set of built-in <strong>utility types</strong> — generic types that transform other types. They are implemented as <strong>mapped types</strong> under the hood. Here's the complete cheat sheet:
+    </p>
+    <table style="width:100%; border-collapse:collapse; margin: var(--space-md) 0; font-size: 0.95rem;">
+      <thead>
+        <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+          <th style="padding: 8px 12px;">Utility Type</th>
+          <th style="padding: 8px 12px;">What It Does</th>
+          <th style="padding: 8px 12px;">Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Partial&lt;T&gt;</code></td>
+          <td style="padding: 8px 12px;">Makes all properties optional</td>
+          <td style="padding: 8px 12px;"><code>Partial&lt;User&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Required&lt;T&gt;</code></td>
+          <td style="padding: 8px 12px;">Makes all properties required</td>
+          <td style="padding: 8px 12px;"><code>Required&lt;User&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Readonly&lt;T&gt;</code></td>
+          <td style="padding: 8px 12px;">Makes all properties read-only</td>
+          <td style="padding: 8px 12px;"><code>Readonly&lt;Config&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Pick&lt;T, K&gt;</code></td>
+          <td style="padding: 8px 12px;">Selects a subset of properties</td>
+          <td style="padding: 8px 12px;"><code>Pick&lt;User, "email" | "name"&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Omit&lt;T, K&gt;</code></td>
+          <td style="padding: 8px 12px;">Removes a subset of properties</td>
+          <td style="padding: 8px 12px;"><code>Omit&lt;User, "password"&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Record&lt;K, V&gt;</code></td>
+          <td style="padding: 8px 12px;">Constructs an object type with keys K and values V</td>
+          <td style="padding: 8px 12px;"><code>Record&lt;string, number&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Exclude&lt;U, E&gt;</code></td>
+          <td style="padding: 8px 12px;">Removes types from a union</td>
+          <td style="padding: 8px 12px;"><code>Exclude&lt;"a"|"b"|"c", "a"&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Extract&lt;U, E&gt;</code></td>
+          <td style="padding: 8px 12px;">Extracts types from a union</td>
+          <td style="padding: 8px 12px;"><code>Extract&lt;string|number, number&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>ReturnType&lt;F&gt;</code></td>
+          <td style="padding: 8px 12px;">Extracts the return type of a function</td>
+          <td style="padding: 8px 12px;"><code>ReturnType&lt;typeof fn&gt;</code></td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 8px 12px;"><code>Parameters&lt;F&gt;</code></td>
+          <td style="padding: 8px 12px;">Extracts parameter types as a tuple</td>
+          <td style="padding: 8px 12px;"><code>Parameters&lt;typeof fn&gt;</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 — Mapped Types (Q21) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What are mapped types and how do they work?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            A <strong>mapped type</strong> creates a new type by transforming each property of an existing type. You iterate over a union of keys using <code>in keyof</code> and apply a transformation to each property's type or modifiers.
+          </p>
+<pre><code><span class="cm">// Make all properties readonly</span>
+<span class="kw">type</span> <span class="tp">MyReadonly</span>&lt;<span class="tp">T</span>&gt; = {
+  <span class="kw">readonly</span> [K <span class="kw">in keyof</span> <span class="tp">T</span>]: <span class="tp">T</span>[K];
+};
+
+<span class="cm">// Make all properties optional</span>
+<span class="kw">type</span> <span class="tp">MyPartial</span>&lt;<span class="tp">T</span>&gt; = {
+  [K <span class="kw">in keyof</span> <span class="tp">T</span>]?: <span class="tp">T</span>[K];
+};
+
+<span class="cm">// Usage</span>
+<span class="kw">interface</span> <span class="tp">User</span> {
+  name: <span class="tp">string</span>;
+  age: <span class="tp">number</span>;
+}
+
+<span class="kw">type</span> <span class="tp">ReadonlyUser</span> = <span class="tp">MyReadonly</span>&lt;<span class="tp">User</span>&gt;;
+<span class="cm">// { readonly name: string; readonly age: number }</span></code></pre>
+          <p>
+            <strong>Key modifiers:</strong> You can add <code>readonly</code>, <code>?</code> (optional), or remove them with <code>-readonly</code> or <code>-?</code>. Mapped types are the <strong>foundation</strong> of all built-in utility types like <code>Partial</code>, <code>Readonly</code>, <code>Required</code>, and <code>Pick</code>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            "Loop over keys and transform." Think of it as a <strong>for-loop for types</strong> — <code>[K in keyof T]</code> iterates each key, and you decide what happens to each property.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 — Utility Types Overview (Q23) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What are the most commonly used utility types in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            TypeScript ships with built-in utility types that transform existing types. The most commonly used ones:
+          </p>
+<pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  name: <span class="tp">string</span>;
+  email: <span class="tp">string</span>;
+  age: <span class="tp">number</span>;
+  password: <span class="tp">string</span>;
+}
+
+<span class="cm">// Partial — all properties optional (edit mode)</span>
+<span class="kw">type</span> <span class="tp">UserUpdate</span> = <span class="tp">Partial</span>&lt;<span class="tp">User</span>&gt;;
+<span class="cm">// { name?: string; email?: string; age?: number; password?: string }</span>
+
+<span class="cm">// Required — all properties required (undo optional)</span>
+<span class="kw">type</span> <span class="tp">StrictUser</span> = <span class="tp">Required</span>&lt;<span class="tp">User</span>&gt;;
+
+<span class="cm">// Readonly — cannot reassign properties</span>
+<span class="kw">type</span> <span class="tp">FrozenUser</span> = <span class="tp">Readonly</span>&lt;<span class="tp">User</span>&gt;;
+
+<span class="cm">// Record — typed dictionary</span>
+<span class="kw">type</span> <span class="tp">UserMap</span> = <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">User</span>&gt;;
+<span class="cm">// { [key: string]: User }</span>
+
+<span class="cm">// Exclude / Extract — union manipulation</span>
+<span class="kw">type</span> <span class="tp">Status</span> = <span class="st">"active"</span> | <span class="st">"inactive"</span> | <span class="st">"banned"</span>;
+<span class="kw">type</span> <span class="tp">ActiveStatus</span> = <span class="tp">Exclude</span>&lt;<span class="tp">Status</span>, <span class="st">"banned"</span>&gt;;
+<span class="cm">// "active" | "inactive"</span>
+
+<span class="cm">// Parameters — extract function params as tuple</span>
+<span class="kw">function</span> createUser(name: <span class="tp">string</span>, age: <span class="tp">number</span>) { <span class="cm">/* ... */</span> }
+<span class="kw">type</span> <span class="tp">CreateUserArgs</span> = <span class="tp">Parameters</span>&lt;<span class="kw">typeof</span> createUser&gt;;
+<span class="cm">// [string, number]</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <strong>Partial</strong> = edit mode (patch updates). <strong>Pick</strong> = select columns (like SQL SELECT). <strong>Omit</strong> = remove columns (like SQL exclude). <strong>Record</strong> = typed dictionary. <strong>Memoize these</strong> — they are used everywhere in real codebases.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 — Omit vs Pick (Q34) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What is the difference between <code>Omit</code> and <code>Pick</code>?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Both create a subtype by selecting a subset of properties, but they take <strong>opposite approaches</strong>:
+          </p>
+          <ul>
+            <li><strong><code>Omit&lt;T, K&gt;</code></strong> — removes the specified keys. "Everything <em>except</em> these."</li>
+            <li><strong><code>Pick&lt;T, K&gt;</code></strong> — selects only the specified keys. "Only these."</li>
+          </ul>
+<pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  id: <span class="tp">number</span>;
+  name: <span class="tp">string</span>;
+  email: <span class="tp">string</span>;
+  password: <span class="tp">string</span>;
+  role: <span class="tp">string</span>;
+}
+
+<span class="cm">// Omit — remove password (keep everything else)</span>
+<span class="kw">type</span> <span class="tp">PublicUser</span> = <span class="tp">Omit</span>&lt;<span class="tp">User</span>, <span class="st">"password"</span>&gt;;
+<span class="cm">// { id: number; name: string; email: string; role: string }</span>
+
+<span class="cm">// Pick — select only login fields</span>
+<span class="kw">type</span> <span class="tp">LoginPayload</span> = <span class="tp">Pick</span>&lt;<span class="tp">User</span>, <span class="st">"email"</span> | <span class="st">"password"</span>&gt;;
+<span class="cm">// { email: string; password: string }</span></code></pre>
+          <p>
+            <strong>When to use which?</strong> If you want <em>most</em> properties and need to exclude a few, use <code>Omit</code>. If you want <em>only a few</em> properties from a large type, use <code>Pick</code>. They are inverses of each other — <code>Omit&lt;T, K&gt;</code> ≈ <code>Pick&lt;T, Exclude&lt;keyof T, K&gt;&gt;</code>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <strong>Omit</strong> = "everything except." <strong>Pick</strong> = "only these." Think of Omit as a <strong>blacklist</strong> and Pick as a <strong>whitelist</strong> for properties.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 — ReturnType (Q37) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>How does <code>ReturnType</code> work and when would you use it?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>ReturnType&lt;F&gt;</code> extracts the return type of a function type. You pass it <code>typeof functionName</code> (not the function itself) to get the type the function returns — without calling it.
+          </p>
+<pre><code><span class="kw">function</span> getUser() {
+  <span class="kw">return</span> { id: <span class="nm">1</span>, name: <span class="st">"Ali"</span>, email: <span class="st">"ali@mail.com"</span> };
+}
+
+<span class="cm">// Extract the return type without calling the function</span>
+<span class="kw">type</span> <span class="tp">UserType</span> = <span class="tp">ReturnType</span>&lt;<span class="kw">typeof</span> getUser&gt;;
+<span class="cm">// { id: number; name: string; email: string }</span>
+
+<span class="cm">// Useful for async functions too</span>
+<span class="kw">async function</span> fetchUser() {
+  <span class="kw">const</span> res = <span class="kw">await</span> fetch(<span class="st">"/api/user"</span>);
+  <span class="kw">return</span> res.json() <span class="kw">as</span> <span class="tp">UserType</span>;
+}
+
+<span class="cm">// Unwraps the Promise — gives you UserType, not Promise&lt;UserType&gt;</span>
+<span class="kw">type</span> <span class="tp">ResolvedUser</span> = <span class="tp">ReturnType</span>&lt;<span class="kw">typeof</span> fetchUser&gt;;
+<span class="cm">// Promise&lt;UserType&gt; — use Awaited&lt;...&gt; to unwrap fully</span>
+<span class="kw">type</span> <span class="tp">FullyResolved</span> = <span class="tp">Awaited</span>&lt;<span class="tp">ReturnType</span>&lt;<span class="kw">typeof</span> fetchUser&gt;&gt;;
+<span class="cm">// UserType</span></code></pre>
+          <p>
+            <strong>Common pattern:</strong> When a function returns a complex object and you need that shape elsewhere (e.g., for props, state, or another function's parameter), use <code>ReturnType</code> to avoid duplicating the type definition.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            "What does this function return?" — <code>ReturnType&lt;typeof fn&gt;</code> answers that question. Always pair with <code>typeof</code> since you need the function's <em>type</em>, not the function itself.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. Which utility type makes all properties of an object optional?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>Required</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>Partial</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>Readonly</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>Omit</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>Partial&lt;T&gt;</code> makes every property in <code>T</code> optional — perfect for patch/update operations.</div>
+      <div class="quiz-feedback incorrect">❌ <code>Partial&lt;T&gt;</code> is the utility type that makes all properties optional. <code>Required</code> does the opposite, <code>Readonly</code> prevents reassignment, and <code>Omit</code> removes properties.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">2. Given <code>interface User { id: number; name: string; email: string; password: string; }</code>, which type produces <code>{ email: string; password: string; }</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>Pick&lt;User, "email" | "password"&gt;</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>Omit&lt;User, "id" | "name"&gt;</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>Partial&lt;User&gt;</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Both A and B</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Both <code>Pick&lt;User, "email" | "password"&gt;</code> and <code>Omit&lt;User, "id" | "name"&gt;</code> produce the same result — Pick selects the specified keys, Omit removes the specified keys.</div>
+      <div class="quiz-feedback incorrect">❌ The answer is <strong>both A and B</strong>. <code>Pick</code> selects only "email" and "password", while <code>Omit</code> removes "id" and "name" — both yield <code>{ email: string; password: string; }</code>. They are inverse operations.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">3. How do you extract the return type of a function named <code>getUser</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>ReturnType&lt;getUser&gt;</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>ReturnType&lt;getUser()&gt;</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>ReturnType&lt;typeof getUser&gt;</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>ReturnType&lt;getUser.type&gt;</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>ReturnType</code> expects a function <em>type</em>, so you use <code>typeof getUser</code> to get the type of the function.</div>
+      <div class="quiz-feedback incorrect">❌ <code>ReturnType</code> takes a <em>type</em>, not a value. Use <code>typeof getUser</code> to reference the function's type: <code>ReturnType&lt;typeof getUser&gt;</code>.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Confused about Omit vs Pick or how ReturnType works? Ask your AI teacher — these patterns become second nature with practice.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0006-narrowing-guards.html">← Previous: Type Narrowing & Guards</a>
+    <a href="0008-advanced-features.html">Next: Advanced Features →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

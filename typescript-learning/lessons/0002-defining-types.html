@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Defining Types</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 2 of 11</span>
+    <h1>Defining Types</h1>
+    <p class="subtitle">Interfaces, types, assertions, unions, intersections, and enums</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Choose between interface and type for different scenarios</li>
+      <li>Use type assertion safely and understand its limitations</li>
+      <li>Create union and intersection types and know when to use each</li>
+      <li>Use enums and understand the preference for const enums / union types</li>
+    </ul>
+  </div>
+
+  <!-- Section: Why Define Types -->
+  <div class="content-section">
+    <h2>Why Define Custom Types?</h2>
+    <p>
+      TypeScript's built-in types (<code>string</code>, <code>number</code>, <code>boolean</code>) cover primitives, but real applications work with <strong>complex shapes</strong> — objects with specific properties, values from a fixed set, or combinations of multiple types.
+    </p>
+    <p>
+      TypeScript gives you four main tools to define custom types: <strong>interfaces</strong>, <strong>type aliases</strong>, <strong>enums</strong>, and <strong>compositions</strong> (unions & intersections). Choosing the right tool for each job is a core TypeScript skill.
+    </p>
+    <p>
+      The guiding principle: <strong>start with what you need now, compose for what you need later</strong>. A simple interface or type alias beats a clever generic 95% of the time.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1: Interface vs Type -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What is the difference between <code>interface</code> and <code>type</code>?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Both define object shapes, but they differ in capabilities:
+          </p>
+          <p>
+            <strong>Interface:</strong> Designed for object shapes. Extensible via <code>extends</code>, supports <strong>declaration merging</strong> (multiple declarations with the same name combine automatically). Best for public APIs and class contracts.
+          </p>
+          <p>
+            <strong>Type:</strong> More flexible — supports unions (<code>|</code>), intersections (<code>&amp;</code>), mapped types, conditional types, and tuple definitions. Cannot be re-opened after creation. Best for complex compositions.
+          </p>
+<pre><code><span class="cm">// Interface — extensible, supports merging</span>
+<span class="kw">interface</span> <span class="tp">Animal</span> { name: <span class="tp">string</span> }
+<span class="kw">interface</span> <span class="tp">Animal</span> { age: <span class="tp">number</span> } <span class="cm">// merges with above!</span>
+<span class="kw">interface</span> <span class="tp">Dog</span> <span class="kw">extends</span> <span class="tp">Animal</span> { breed: <span class="tp">string</span> }
+
+<span class="cm">// Type — supports unions, intersections, mapped types</span>
+<span class="kw">type</span> <span class="tp">Status</span> = <span class="st">"active"</span> | <span class="st">"inactive"</span>;
+<span class="kw">type</span> <span class="tp">Employee</span> = { name: <span class="tp">string</span> } &amp; { age: <span class="tp">number</span> };</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Interface = <strong>"I describe an object"</strong> (open, extensible). Type = <strong>"I can be anything"</strong> (flexible, compositional). Use interface for public APIs, type for complex compositions.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2: Type Assertion -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What is type assertion and when should you use it?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Type assertion (<code>as Type</code>) tells TypeScript: <strong>"trust me, I know the type better than you do."</strong> It is a <em>compiler hint only</em> — it does <strong>not</strong> change the runtime type or perform any conversion. No casting happens at runtime.
+          </p>
+          <p>
+            Use it sparingly — typically when you have more information than the compiler (e.g., DOM elements, parsed JSON from a known API shape). Overusing it defeats type safety.
+          </p>
+<pre><code><span class="cm">// DOM example — compiler only knows it's HTMLElement</span>
+<span class="kw">const</span> input = document.getElementById(<span class="st">"email"</span>) <span class="kw">as</span> <span class="tp">HTMLInputElement</span>;
+input.value; <span class="cm">// OK — TS now knows it has .value</span>
+
+<span class="cm">// ⚠️ This does NOT convert the value!</span>
+<span class="kw">const</span> x = <span class="st">"hello"</span> <span class="kw">as</span> <span class="tp">number</span>; <span class="cm">// Error — unrelated types</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>as</code> = <strong>"I know better than you"</strong> to TypeScript. It's a compiler-only hint — it never changes the runtime type. Use sparingly.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3: Union Types -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What are union types and how do you use them?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            A union type (<code>A | B</code>) allows a value to be <strong>one of several types</strong>. You must narrow the type before using type-specific operations. Type guards include <code>typeof</code>, <code>in</code>, and <code>instanceof</code>.
+          </p>
+<pre><code><span class="kw">function</span> format(value: <span class="tp">string</span> | <span class="tp">number</span>): <span class="tp">string</span> {
+  <span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="st">"string"</span>) {
+    <span class="kw">return</span> value.trim(); <span class="cm">// TS knows it's string here</span>
+  }
+  <span class="kw">return</span> value.toFixed(<span class="nm">2</span>); <span class="cm">// TS knows it's number here</span>
+}
+
+<span class="cm">// Literal union — restricted set of strings</span>
+<span class="kw">type</span> <span class="tp">Direction</span> = <span class="st">"left"</span> | <span class="st">"right"</span> | <span class="st">"up"</span> | <span class="st">"down"</span>;</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Union = <strong>OR</strong> (<code>|</code>). The value can be this <em>or</em> that. Think of it as a menu — pick one.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4: Intersection Types -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What are intersection types and how do they differ from unions?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            An intersection type (<code>A &amp; B</code>) <strong>combines ALL properties</strong> from every member type. The resulting value must satisfy every type in the intersection. Use it to compose types together — the value has everything.
+          </p>
+<pre><code><span class="kw">type</span> <span class="tp">Named</span> = { name: <span class="tp">string</span> };
+<span class="kw">type</span> <span class="tp">Aged</span> = { age: <span class="tp">number</span> };
+<span class="kw">type</span> <span class="tp">Employee</span> = <span class="tp">Named</span> &amp; <span class="tp">Aged</span>;
+
+<span class="kw">const</span> emp: <span class="tp">Employee</span> = {
+  name: <span class="st">"Ali"</span>,  <span class="cm">// from Named</span>
+  age: <span class="nm">25</span>       <span class="cm">// from Aged</span>
+};</code></pre>
+          <p>
+            <strong>Key difference:</strong> Union = pick one (<code>|</code>). Intersection = have all (<code>&amp;</code>).
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Intersection = <strong>AND</strong> (<code>&amp;</code>). The value must have this <em>and</em> that. Think of it as a checklist — must have everything.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q5: Enums -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">5</span>
+          <span>What are enums and when should you prefer alternatives?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Enums define a <strong>set of named constants</strong>. TypeScript supports numeric enums (auto-incrementing), string enums, and const enums (inlined at compile time).
+          </p>
+<pre><code><span class="cm">// Numeric enum — auto-incrementing</span>
+<span class="kw">enum</span> <span class="tp">Direction</span> { Up, Down, Left, Right }
+<span class="cm">// Up=0, Down=1, Left=2, Right=3</span>
+
+<span class="cm">// String enum — explicit values</span>
+<span class="kw">enum</span> <span class="tp">Status</span> { Active = <span class="st">"ACTIVE"</span>, Inactive = <span class="st">"INACTIVE"</span> }
+
+<span class="cm">// Const enum — inlined, no JS output</span>
+<span class="kw">const enum</span> <span class="tp">Color</span> { Red, Green, Blue }
+<span class="kw">let</span> c = <span class="tp">Color</span>.Red; <span class="cm">// compiles to: let c = 0;</span></code></pre>
+          <p>
+            <strong>Best practice:</strong> Prefer <strong>union types</strong> (<code>type Status = "active" | "inactive"</code>) or <strong>const enums</strong> over regular enums. Regular enums generate extra JavaScript and can hinder tree-shaking.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Prefer <strong>union types</strong> or <strong>const enums</strong> — they tree-shake cleanly and add zero runtime overhead.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">1. Which feature does <code>type</code> support that <code>interface</code> does not?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Extending other types via <code>extends</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Describing object shapes</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Union and intersection compositions</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Being used as a parameter type</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>type</code> supports unions, intersections, mapped types, and conditional types — none of which <code>interface</code> can express directly.</div>
+      <div class="quiz-feedback incorrect">❌ <code>type</code> uniquely supports unions (<code>|</code>), intersections (<code>&amp;</code>), mapped types, and conditional types. Both interface and type can describe objects and be used as parameter types.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">2. What does type assertion (<code>as</code>) actually do at runtime?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Converts the value to the asserted type</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Nothing — it's a compiler-only hint</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Throws an error if the type doesn't match</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Adds runtime type checking</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Type assertion is erased at compile time — it tells TypeScript to trust you, but changes nothing at runtime.</div>
+      <div class="quiz-feedback incorrect">❌ Type assertion (<code>as</code>) does <strong>nothing at runtime</strong> — it's purely a compile-time hint. No conversion, no checking, no error.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. Which is the best practice for defining a fixed set of string values?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>type Status = "active" | "inactive"</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>enum Status { Active, Inactive }</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>const status: any = "active"</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>let status = "active" as any</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! A string literal union is the cleanest approach — zero runtime overhead, full type safety, and tree-shakes perfectly.</div>
+      <div class="quiz-feedback incorrect">❌ Union types of string literals (<code>"active" | "inactive"</code>) are preferred over regular enums — they generate no JavaScript and integrate cleanly with tooling.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Have questions about defining types? Ask your AI teacher — no question is too basic.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0001-fundamentals.html">← Previous: Fundamentals</a>
+    <a href="0003-generics.html">Next: Generics →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

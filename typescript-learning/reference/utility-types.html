@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TypeScript Utility Types — Cheat Sheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .ref-header {
+      text-align: center;
+      padding: var(--space-2xl) 0 var(--space-xl);
+      border-bottom: 2px solid var(--border);
+      margin-bottom: var(--space-2xl);
+    }
+    .ref-header .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 100px;
+      margin-bottom: var(--space-md);
+    }
+    .ref-header h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: var(--space-sm);
+      line-height: 1.2;
+    }
+    .ref-header .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: var(--space-md) 0 var(--space-xl);
+      font-size: 0.9rem;
+    }
+    .ref-table th {
+      text-align: left;
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-alt);
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border);
+    }
+    .ref-table td {
+      padding: var(--space-sm) var(--space-md);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .ref-table tr:nth-child(even) td {
+      background: var(--surface-alt);
+    }
+    .ref-table code {
+      font-size: 0.82em;
+    }
+
+    .type-name {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--primary-dark);
+      white-space: nowrap;
+    }
+
+    .ref-table pre {
+      margin: var(--space-xs) 0;
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.76rem;
+      line-height: 1.5;
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: var(--space-2xl) 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background var(--transition-fast);
+    }
+    .back-link:hover {
+      background: var(--primary-dark);
+    }
+
+    .category-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--primary);
+      margin-bottom: var(--space-sm);
+      padding: var(--space-xs) var(--space-md);
+      background: var(--primary-light);
+      border-radius: 100px;
+      display: inline-block;
+    }
+
+    @media print {
+      .back-link { display: none; }
+      .ref-table tr:nth-child(even) td { background: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ref-header">
+    <div class="badge">Cheat Sheet</div>
+    <h1>TypeScript Utility Types</h1>
+    <p class="subtitle">Every built-in utility type — syntax, what it does, and a practical example.</p>
+  </header>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- OBJECT TRANSFORMS                            -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Object Transforms</h2>
+    <p>Modify the shape of object types — make things optional, required, readonly, or pick specific properties.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Utility</th><th>Description</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">Partial&lt;T&gt;</span></td>
+          <td>Makes all properties optional</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">User</span> { name: <span class="tp">string</span>; age: <span class="tp">number</span>; }
+<span class="kw">type</span> <span class="tp">PartialUser</span> = <span class="tp">Partial</span>&lt;<span class="tp">User</span>&gt;;
+<span class="cm">// { name?: string; age?: number }</span>
+
+<span class="kw">function</span> <span class="fn">update</span>(id: <span class="tp">number</span>, data: <span class="tp">Partial</span>&lt;<span class="tp">User</span>&gt;) {
+  <span class="cm">// only send changed fields</span>
+}</code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Required&lt;T&gt;</span></td>
+          <td>Makes all properties required</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">Config</span> { host?: <span class="tp">string</span>; port?: <span class="tp">number</span>; }
+<span class="kw">type</span> <span class="tp">StrictConfig</span> = <span class="tp">Required</span>&lt;<span class="tp">Config</span>&gt;;
+<span class="cm">// { host: string; port: number }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Readonly&lt;T&gt;</span></td>
+          <td>Makes all properties readonly</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Frozen</span> = <span class="tp">Readonly</span>&lt;{ x: <span class="tp">number</span>; y: <span class="tp">number</span> }&gt;;
+<span class="kw">const</span> point: <span class="tp">Frozen</span> = { x: <span class="nm">0</span>, y: <span class="nm">0</span> };
+<span class="cm">// point.x = 1;  // Error!</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Pick&lt;T, K&gt;</span></td>
+          <td>Extract a subset of properties</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  id: <span class="tp">number</span>; name: <span class="tp">string</span>; email: <span class="tp">string</span>;
+}
+<span class="kw">type</span> <span class="tp">UserPreview</span> = <span class="tp">Pick</span>&lt;<span class="tp">User</span>, <span class="st">"name"</span> | <span class="st">"email"</span>&gt;;
+<span class="cm">// { name: string; email: string }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Omit&lt;T, K&gt;</span></td>
+          <td>Remove a subset of properties</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  id: <span class="tp">number</span>; name: <span class="tp">string</span>; password: <span class="tp">string</span>;
+}
+<span class="kw">type</span> <span class="tp">SafeUser</span> = <span class="tp">Omit</span>&lt;<span class="tp">User</span>, <span class="st">"password"</span>&gt;;
+<span class="cm">// { id: number; name: string }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Record&lt;K, V&gt;</span></td>
+          <td>Object type with keys K, values V</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Role</span> = <span class="st">"admin"</span> | <span class="st">"editor"</span> | <span class="st">"viewer"</span>;
+<span class="kw">type</span> <span class="tp">Perms</span> = <span class="tp">Record</span>&lt;<span class="tp">Role</span>, <span class="tp">boolean</span>&gt;;
+<span class="cm">// { admin: boolean; editor: boolean; viewer: boolean }</span>
+
+<span class="kw">const</span> perms: <span class="tp">Perms</span> = {
+  admin: <span class="kw">true</span>, editor: <span class="kw">true</span>, viewer: <span class="kw">false</span>,
+};</code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- UNION & NULLABILITY                          -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Union &amp; Nullability</h2>
+    <p>Filter, exclude, and narrow union types.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Utility</th><th>Description</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">Exclude&lt;U, E&gt;</span></td>
+          <td>Remove types E from union U</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">T</span> = <span class="tp">string</span> | <span class="tp">number</span> | <span class="tp">boolean</span>;
+<span class="kw">type</span> <span class="tp">NoBool</span> = <span class="tp">Exclude</span>&lt;<span class="tp">T</span>, <span class="tp">boolean</span>&gt;;
+<span class="cm">// string | number</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Extract&lt;U, E&gt;</span></td>
+          <td>Keep only types matching E from U</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">T</span> = <span class="tp">string</span> | <span class="tp">number</span> | <span class="tp">boolean</span>;
+<span class="kw">type</span> <span class="tp">OnlyStr</span> = <span class="tp">Extract</span>&lt;<span class="tp">T</span>, <span class="tp">string</span>&gt;;
+<span class="cm">// string</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">NonNullable&lt;T&gt;</span></td>
+          <td>Remove null and undefined from T</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Maybe</span> = <span class="tp">string</span> | <span class="tp">null</span> | <span class="tp">undefined</span>;
+<span class="kw">type</span> <span class="tp">Sure</span> = <span class="tp">NonNullable</span>&lt;<span class="tp">Maybe</span>&gt;;
+<span class="cm">// string</span></code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- FUNCTION & CLASS TYPES                       -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Function &amp; Class Types</h2>
+    <p>Extract metadata from function and constructor signatures.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Utility</th><th>Description</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">ReturnType&lt;T&gt;</span></td>
+          <td>Extract return type of a function</td>
+          <td><pre><code><span class="kw">function</span> <span class="fn">getUser</span>() {
+  <span class="kw">return</span> { name: <span class="st">"Alice"</span>, age: <span class="nm">30</span> };
+}
+<span class="kw">type</span> <span class="tp">User</span> = <span class="tp">ReturnType</span>&lt;<span class="kw">typeof</span> getUser&gt;;
+<span class="cm">// { name: string; age: number }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Parameters&lt;T&gt;</span></td>
+          <td>Extract param types as a tuple</td>
+          <td><pre><code><span class="kw">function</span> <span class="fn">createUser</span>(name: <span class="tp">string</span>, age: <span class="tp">number</span>) {}
+<span class="kw">type</span> <span class="tp">Args</span> = <span class="tp">Parameters</span>&lt;<span class="kw">typeof</span> createUser&gt;;
+<span class="cm">// [string, number]</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">InstanceType&lt;T&gt;</span></td>
+          <td>Extract instance type of a constructor</td>
+          <td><pre><code><span class="kw">class</span> <span class="tp">Box</span> {
+  <span class="kw">constructor</span>(<span class="kw">public</span> value: <span class="tp">number</span>) {}
+}
+<span class="kw">type</span> <span class="tp">BoxInstance</span> = <span class="tp">InstanceType</span>&lt;<span class="kw">typeof</span> Box&gt;;
+<span class="cm">// { value: number }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">ThisParameterType&lt;T&gt;</span></td>
+          <td>Extract the <code>this</code> parameter type</td>
+          <td><pre><code><span class="kw">function</span> <span class="fn">greet</span>(<span class="kw">this</span>: { name: <span class="tp">string</span> }) {
+  <span class="kw">return</span> <span class="st">`Hi, ${</span><span class="kw">this</span>.name<span class="st">}`</span>;
+}
+<span class="kw">type</span> <span class="tp">ThisType</span> = <span class="tp">ThisParameterType</span>&lt;<span class="kw">typeof</span> greet&gt;;
+<span class="cm">// { name: string }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">OmitThisParameter&lt;T&gt;</span></td>
+          <td>Remove the <code>this</code> parameter from type</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">FreeFn</span> = <span class="tp">OmitThisParameter</span>&lt;<span class="kw">typeof</span> greet&gt;;
+<span class="cm">// () => string (no `this` needed)</span></code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- STRING MANIPULATION                          -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>String Case Transforms</h2>
+    <p>Convert string literal types between cases.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Utility</th><th>Description</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">Uppercase&lt;S&gt;</span></td>
+          <td>Uppercase entire string</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Upper</span> = <span class="tp">Uppercase</span>&lt;<span class="st">"hello"</span>&gt;;
+<span class="cm">// "HELLO"</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Lowercase&lt;S&gt;</span></td>
+          <td>Lowercase entire string</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Lower</span> = <span class="tp">Lowercase</span>&lt;<span class="st">"HELLO"</span>&gt;;
+<span class="cm">// "hello"</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Capitalize&lt;S&gt;</span></td>
+          <td>Capitalize first character</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Cap</span> = <span class="tp">Capitalize</span>&lt;<span class="st">"hello world"</span>&gt;;
+<span class="cm">// "Hello world"</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Uncapitalize&lt;S&gt;</span></td>
+          <td>Lowercase first character</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Uncap</span> = <span class="tp">Uncapitalize</span>&lt;<span class="st">"HelloWorld"</span>&gt;;
+<span class="cm">// "helloWorld"</span></code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- COMMON COMPOSITIONS                          -->
+  <!-- ════════════════════════════════════════════ -->
+  <section class="content-section">
+    <h2>Common Compositions</h2>
+    <p>Real-world patterns that combine multiple utility types.</p>
+
+    <table class="ref-table">
+      <thead>
+        <tr><th>Pattern</th><th>What It Does</th><th>Example</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="type-name">Partial&lt;Pick&lt;T, K&gt;&gt;</span></td>
+          <td>Make specific props optional</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  id: <span class="tp">number</span>; name: <span class="tp">string</span>; email: <span class="tp">string</span>;
+}
+<span class="kw">type</span> <span class="tp">Patch</span> = <span class="tp">Partial</span>&lt;<span class="tp">Pick</span>&lt;<span class="tp">User</span>, <span class="st">"name"</span> | <span class="st">"email"</span>&gt;&gt;;
+<span class="cm">// { name?: string; email?: string }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Omit&lt;T, keyof U&gt;</span></td>
+          <td>Remove all keys that exist on U</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">Base</span> { id: <span class="tp">number</span>; created: <span class="tp">Date</span>; }
+<span class="kw">interface</span> <span class="tp">Full</span> <span class="kw">extends</span> <span class="tp">Base</span> { name: <span class="tp">string</span>; }
+<span class="kw">type</span> <span class="tp">NoBase</span> = <span class="tp">Omit</span>&lt;<span class="tp">Full</span>, <span class="kw">keyof</span> Base&gt;;
+<span class="cm">// { name: string }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Required&lt;Pick&lt;T, K&gt;&gt;</span></td>
+          <td>Force specific props to be required</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">Config</span> {
+  host?: <span class="tp">string</span>; port?: <span class="tp">number</span>; debug?: <span class="tp">boolean</span>;
+}
+<span class="kw">type</span> <span class="tp">Prod</span> = <span class="tp">Required</span>&lt;<span class="tp">Pick</span>&lt;<span class="tp">Config</span>, <span class="st">"host"</span> | <span class="st">"port"</span>&gt;&gt;;
+<span class="cm">// { host: string; port: number }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Readonly&lt;Omit&lt;T, K&gt;&gt;</span></td>
+          <td>Immutable with excluded keys</td>
+          <td><pre><code><span class="kw">interface</span> <span class="tp">State</span> {
+  id: <span class="tp">number</span>; data: <span class="tp">string</span>; _internal: <span class="tp">any</span>;
+}
+<span class="kw">type</span> <span class="tp">PublicState</span> = <span class="tp">Readonly</span>&lt;<span class="tp">Omit</span>&lt;<span class="tp">State</span>, <span class="st">"_internal"</span>&gt;&gt;;
+<span class="cm">// { readonly id: number; readonly data: string }</span></code></pre></td>
+        </tr>
+        <tr>
+          <td><span class="type-name">Record&lt;keyof T, V&gt;</span></td>
+          <td>Remap object values to a new type</td>
+          <td><pre><code><span class="kw">type</span> <span class="tp">Flags</span>&lt;<span class="tp">T</span>&gt; = <span class="tp">Record</span>&lt;<span class="kw">keyof</span> T, <span class="tp">boolean</span>&gt;;
+<span class="kw">interface</span> <span class="tp">Perms</span> { read: <span class="tp">string</span>; write: <span class="tp">string</span>; }
+<span class="kw">type</span> <span class="tp">PermFlags</span> = <span class="tp">Flags</span>&lt;<span class="tp">Perms</span>&gt;;
+<span class="cm">// { read: boolean; write: boolean }</span></code></pre></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer style="text-align: center; padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 2px solid var(--border);">
+    <a href="../lessons/0001-fundamentals.html" class="back-link">← Back to Lessons</a>
+  </footer>
+
+</body>
+</html>

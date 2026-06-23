@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Type Narrowing & Guards</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 6 of 11</span>
+    <h1>Type Narrowing & Guards</h1>
+    <p class="subtitle">How TypeScript refines types within conditional blocks</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Apply type narrowing using <code>typeof</code>, <code>instanceof</code>, and <code>in</code></li>
+      <li>Design discriminated unions for state machines</li>
+      <li>Write custom type guards with type predicates</li>
+    </ul>
+  </div>
+
+  <!-- Section: Type Narrowing Techniques -->
+  <div class="content-section">
+    <h2>Type Narrowing Techniques</h2>
+    <p>
+      TypeScript starts with a <strong>wide type</strong> (like <code>string | number</code>) and <strong>narrows</strong> it within conditional blocks based on checks you perform. The compiler tracks these checks and refines the type accordingly — this is called <em>control flow based type analysis</em>.
+    </p>
+
+    <h3>1. <code>typeof</code> — Primitive narrowing</h3>
+    <p>Works for <code>string</code>, <code>number</code>, <code>boolean</code>, <code>symbol</code>, <code>bigint</code>, <code>undefined</code>, <code>object</code>, <code>function</code>.</p>
+<pre><code><span class="kw">function</span> <span class="fn">printValue</span>(value: <span class="tp">string</span> | <span class="tp">number</span>) {
+  <span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="st">"string"</span>) {
+    <span class="cm">// TypeScript knows: value is string</span>
+    console.<span class="fn">log</span>(value.<span class="fn">toUpperCase</span>()); <span class="cm">// ✅ OK</span>
+  } <span class="kw">else</span> {
+    <span class="cm">// TypeScript knows: value is number</span>
+    console.<span class="fn">log</span>(value.<span class="fn">toFixed</span>(<span class="nm">2</span>)); <span class="cm">// ✅ OK</span>
+  }
+}</code></pre>
+
+    <h3>2. <code>instanceof</code> — Class/constructor narrowing</h3>
+    <p>Checks the prototype chain. Essential for narrowing <code>Error</code> subtypes, <code>Date</code>, <code>RegExp</code>, <code>Array</code>, and custom classes.</p>
+<pre><code><span class="kw">function</span> <span class="fn">handleError</span>(err: <span class="tp">Error</span> | <span class="tp">string</span>) {
+  <span class="kw">if</span> (err <span class="kw">instanceof</span> Error) {
+    console.<span class="fn">log</span>(err.stack); <span class="cm">// ✅ err is Error</span>
+  } <span class="kw">else</span> {
+    console.<span class="fn">log</span>(err.<span class="fn">toUpperCase</span>()); <span class="cm">// ✅ err is string</span>
+  }
+}</code></pre>
+
+    <h3>3. <code>in</code> operator — Property-check narrowing</h3>
+    <p>Checks whether a property exists on an object. Useful for discriminating objects with different shapes.</p>
+<pre><code><span class="kw">type</span> <span class="tp">Fish</span> = { <span class="fn">swim</span>: () => <span class="tp">void</span> };
+<span class="kw">type</span> <span class="tp">Bird</span> = { <span class="fn">fly</span>: () => <span class="tp">void</span> };
+
+<span class="kw">function</span> <span class="fn">move</span>(animal: <span class="tp">Fish</span> | <span class="tp">Bird</span>) {
+  <span class="kw">if</span> (<span class="st">"swim"</span> <span class="kw">in</span> animal) {
+    animal.<span class="fn">swim</span>(); <span class="cm">// ✅ animal is Fish</span>
+  } <span class="kw">else</span> {
+    animal.<span class="fn">fly</span>(); <span class="cm">// ✅ animal is Bird</span>
+  }
+}</code></pre>
+
+    <h3>4. Truthiness narrowing & equality checks</h3>
+    <p><code>null</code>/<code>undefined</code> elimination via truthiness checks, plus strict equality for literal types.</p>
+<pre><code><span class="kw">function</span> <span class="fn">printName</span>(name: <span class="tp">string</span> | <span class="tp">null</span>) {
+  <span class="kw">if</span> (name !== <span class="kw">null</span>) {
+    console.<span class="fn">log</span>(name.<span class="fn">toUpperCase</span>()); <span class="cm">// ✅ name is string</span>
+  }
+}
+
+<span class="kw">function</span> <span class="fn">handle</span>(val: <span class="st">"a"</span> | <span class="st">"b"</span>) {
+  <span class="kw">if</span> (val === <span class="st">"a"</span>) {
+    <span class="cm">// val is "a"</span>
+  } <span class="kw">else</span> {
+    <span class="cm">// val is "b"</span>
+  }
+}</code></pre>
+
+    <h3>5. Discriminated unions — The state machine pattern</h3>
+    <p>Use a shared literal property (the <em>discriminant</em>) to tag each union member. TypeScript narrows based on that field in <code>switch</code>/<code>if</code>.</p>
+<pre><code><span class="kw">type</span> <span class="tp">Shape</span> =
+  | { <span class="fn">kind</span>: <span class="st">"circle"</span>; <span class="fn">radius</span>: <span class="tp">number</span> }
+  | { <span class="fn">kind</span>: <span class="st">"rect"</span>; <span class="fn">w</span>: <span class="tp">number</span>; <span class="fn">h</span>: <span class="tp">number</span> };
+
+<span class="kw">function</span> <span class="fn">area</span>(s: <span class="tp">Shape</span>): <span class="tp">number</span> {
+  <span class="kw">switch</span> (s.<span class="fn">kind</span>) {
+    <span class="kw">case</span> <span class="st">"circle"</span>:
+      <span class="kw">return</span> Math.PI * s.radius ** <span class="nm">2</span>; <span class="cm">// ✅ s.radius exists</span>
+    <span class="kw">case</span> <span class="st">"rect"</span>:
+      <span class="kw">return</span> s.w * s.h; <span class="cm">// ✅ s.w and s.h exist</span>
+  }
+}</code></pre>
+
+    <h3>6. Custom type guards — Type predicates</h3>
+    <p>When built-in checks aren't enough, write a function with a <strong>type predicate</strong> return type (<code>x is Type</code>) to teach TypeScript a new narrowing rule.</p>
+<pre><code><span class="kw">interface</span> <span class="tp">ApiSuccess</span> { <span class="fn">status</span>: <span class="st">"success"</span>; <span class="fn">data</span>: <span class="tp">string</span>; }
+<span class="kw">interface</span> <span class="tp">ApiError</span>  { <span class="fn">status</span>: <span class="st">"error"</span>; <span class="fn">message</span>: <span class="tp">string</span>; }
+<span class="kw">type</span> <span class="tp">ApiResponse</span> = <span class="tp">ApiSuccess</span> | <span class="tp">ApiError</span>;
+
+<span class="cm">// Custom type guard with type predicate</span>
+<span class="kw">function</span> <span class="fn">isSuccess</span>(res: <span class="tp">ApiResponse</span>): res <span class="kw">is</span> <span class="tp">ApiSuccess</span> {
+  <span class="kw">return</span> res.status === <span class="st">"success"</span>;
+}
+
+<span class="kw">function</span> <span class="fn">handle</span>(res: <span class="tp">ApiResponse</span>) {
+  <span class="kw">if</span> (<span class="fn">isSuccess</span>(res)) {
+    console.<span class="fn">log</span>(res.data); <span class="cm">// ✅ res is ApiSuccess</span>
+  } <span class="kw">else</span> {
+    console.<span class="fn">log</span>(res.message); <span class="cm">// ✅ res is ApiError</span>
+  }
+}</code></pre>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">Q18</span>
+          <span>What is type narrowing in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Type narrowing is TypeScript's ability to <strong>refine a wide type to a narrower one</strong> within conditional blocks. When you perform a runtime check (like <code>typeof x === "string"</code>), TypeScript tracks this through the control flow and adjusts the type accordingly.
+          </p>
+          <p>
+            <strong>Built-in narrowing techniques:</strong>
+          </p>
+          <ul>
+            <li><code>typeof x === "string"</code> — narrows primitives</li>
+            <li><code>x instanceof Error</code> — narrows classes via prototype chain</li>
+            <li><code>"prop" in obj</code> — narrows by property existence</li>
+            <li><code>x !== null</code> / truthiness checks — eliminates nullish types</li>
+            <li><strong>Discriminated unions</strong> — narrows by a shared literal field</li>
+          </ul>
+<pre><code><span class="kw">function</span> <span class="fn">double</span>(x: <span class="tp">string</span> | <span class="tp">number</span>): <span class="tp">string</span> | <span class="tp">number</span> {
+  <span class="kw">if</span> (<span class="kw">typeof</span> x === <span class="st">"string"</span>) {
+    <span class="kw">return</span> x.<span class="fn">repeat</span>(<span class="nm">2</span>); <span class="cm">// ✅ x is string here</span>
+  }
+  <span class="kw">return</span> x * <span class="nm">2</span>; <span class="cm">// ✅ x is number here</span>
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            "Prove what type it is, then I'll let you use it." TypeScript won't let you call <code>.toUpperCase()</code> on <code>string | number</code> — but after <code>typeof x === "string"</code>, it knows <code>x</code> is safe.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">Q27</span>
+          <span>What are discriminated unions?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            A discriminated union (also called a <strong>tagged union</strong>) is a pattern where each member of a union type shares a common property with a <strong>unique literal value</strong>. That shared property is the <em>discriminant</em> (commonly named <code>kind</code>, <code>type</code>, or <code>status</code>).
+          </p>
+          <p>
+            TypeScript uses the discriminant to <strong>automatically narrow</strong> the type in <code>switch</code>/<code>if</code> blocks. This is the go-to pattern for modeling state machines, network responses, and any data with mutually exclusive shapes.
+          </p>
+<pre><code><span class="kw">type</span> <span class="tp">Shape</span> =
+  | { <span class="fn">kind</span>: <span class="st">"circle"</span>; <span class="fn">radius</span>: <span class="tp">number</span> }
+  | { <span class="fn">kind</span>: <span class="st">"rect"</span>; <span class="fn">w</span>: <span class="tp">number</span>; <span class="fn">h</span>: <span class="tp">number</span> }
+  | { <span class="fn">kind</span>: <span class="st">"triangle"</span>; <span class="fn">base</span>: <span class="tp">number</span>; <span class="fn">height</span>: <span class="tp">number</span> };
+
+<span class="kw">function</span> <span class="fn">area</span>(s: <span class="tp">Shape</span>): <span class="tp">number</span> {
+  <span class="kw">switch</span> (s.<span class="fn">kind</span>) {
+    <span class="kw">case</span> <span class="st">"circle"</span>:
+      <span class="kw">return</span> Math.PI * s.radius ** <span class="nm">2</span>;
+    <span class="kw">case</span> <span class="st">"rect"</span>:
+      <span class="kw">return</span> s.w * s.h;
+    <span class="kw">case</span> <span class="st">"triangle"</span>:
+      <span class="kw">return</span> <span class="nm">0.5</span> * s.base * s.height;
+  }
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Discriminated union = <strong>tagged union</strong>. The discriminant (<code>kind</code>) is the tag that lets TypeScript narrow safely. Always use this for state machines — <code>kind: "loading" | "success" | "error"</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">Q28</span>
+          <span>What are type guards?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Type guards are runtime checks that <strong>narrow types</strong> at runtime and inform the TypeScript compiler about the narrowed type. They come in several forms:
+          </p>
+          <p>
+            <strong>Built-in type guards:</strong> <code>typeof</code>, <code>instanceof</code>, and the <code>in</code> operator — these work out of the box.
+          </p>
+          <p>
+            <strong>Custom type guards</strong> use a <em>type predicate</em> (<code>parameterName is Type</code>) as the return type. This tells TypeScript: "If this function returns <code>true</code>, treat the argument as <code>Type</code>."
+          </p>
+<pre><code><span class="cm">// Custom type guard with type predicate</span>
+<span class="kw">function</span> <span class="fn">isString</span>(val: <span class="tp">unknown</span>): val <span class="kw">is</span> <span class="tp">string</span> {
+  <span class="kw">return</span> <span class="kw">typeof</span> val === <span class="st">"string"</span>;
+}
+
+<span class="kw">function</span> <span class="fn">process</span>(input: <span class="tp">unknown</span>) {
+  <span class="kw">if</span> (<span class="fn">isString</span>(input)) {
+    console.<span class="fn">log</span>(input.<span class="fn">toUpperCase</span>()); <span class="cm">// ✅ input is string</span>
+  }
+}</code></pre>
+          <p>
+            Type predicates are especially useful for complex checks — e.g., validating API response shapes, checking if an object satisfies an interface, or validating parsed JSON.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Custom type guards with <code>x is Type</code> = <strong>"I promise this function checks the type correctly."</strong> You're teaching TypeScript a narrowing rule it can't figure out on its own.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. Which operator narrows types by checking the prototype chain?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>typeof</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>instanceof</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>in</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>as</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>instanceof</code> checks the prototype chain and narrows the type accordingly — e.g., <code>err instanceof Error</code>.</div>
+      <div class="quiz-feedback incorrect">❌ <code>instanceof</code> is the operator that checks the prototype chain. <code>typeof</code> checks primitives, <code>in</code> checks property existence, and <code>as</code> is a type assertion (not a runtime check).</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. What makes a union "discriminated"?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Each member has a unique method name</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Each member extends a common base interface</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Each member has a shared property with a unique literal value</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> The union uses generic type parameters</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! A discriminated union shares a common property (the discriminant, e.g., <code>kind</code>) where each member has a unique literal value for that property.</div>
+      <div class="quiz-feedback incorrect">❌ The defining feature is a shared property with a unique literal value per member — e.g., <code>kind: "circle"</code> vs <code>kind: "rect"</code>. This enables type-safe narrowing in switch/if.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. What does <code>val is Type</code> signify in a function return type?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> It's a type predicate — if the function returns true, TypeScript narrows <code>val</code> to <code>Type</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> The function always returns a value of type <code>Type</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> It casts <code>val</code> to <code>Type</code> without any runtime check</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It's equivalent to <code>val as Type</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>val is Type</code> is a type predicate. When the guard function returns <code>true</code>, TypeScript narrows the parameter to <code>Type</code> in the calling scope.</div>
+      <div class="quiz-feedback incorrect">❌ <code>val is Type</code> is a type predicate — it tells TypeScript: "If this function returns true, treat <code>val</code> as <code>Type</code>." It's not a cast or assertion; it's a narrowing guarantee.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Confused about narrowing, discriminated unions, or type predicates? Ask your AI teacher — every narrowing pattern becomes obvious once you see the right example.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0005-functions-properties.html">← Previous: Functions & Properties</a>
+    <a href="0007-utility-types.html">Next: Utility Types →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

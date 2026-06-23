@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 10 — Advanced TypeScript</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 10 of 11</span>
+    <h1>Advanced TypeScript</h1>
+    <p class="subtitle">Deep type system features, typing models, and meta-programming</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Understand <code>strictNullChecks</code> and its impact on code safety</li>
+      <li>Write recursive types and variadic tuple types</li>
+      <li>Use exhaustive checking with <code>never</code></li>
+      <li>Create branded types for nominal typing</li>
+      <li>Extend existing modules with module augmentation</li>
+    </ul>
+  </div>
+
+  <!-- Section: Namespaces & .d.ts -->
+  <div class="content-section">
+    <h2>Namespaces & Declaration Files</h2>
+    <p>
+      Before ES6 modules, TypeScript used <strong>namespaces</strong> (<code>namespace</code> keyword) to organize code into logical groups. Today, ES6 modules (<code>import</code>/<code>export</code>) have largely replaced namespaces for application code. Namespaces still appear in legacy codebases and <code>.d.ts</code> files for global library typings.
+    </p>
+    <p>
+      <strong>Declaration files</strong> (<code>.d.ts</code>) describe the shape of JavaScript libraries without any implementation — they contain only type information. The DefinitelyTyped repository (<code>@types/*</code> packages) is the primary source of community-maintained declaration files.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 — Namespaces (Q38) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What are namespaces in TypeScript and are they still used?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Namespaces are TypeScript's original way to <strong>organize code into logical groups</strong> using the <code>namespace</code> keyword. They prevent global scope pollution by wrapping related types, interfaces, and functions into a named container. You access members via dot notation (<code>MyNamespace.myFunction()</code>).
+          </p>
+          <p>
+            In modern code, <strong>ES6 modules have largely replaced namespaces</strong>. Use <code>import</code>/<code>export</code> for new projects. Namespaces are still useful for organizing <code>.d.ts</code> files and in legacy codebases.
+          </p>
+<pre><code><span class="cm">// Legacy pattern — namespaces</span>
+<span class="kw">namespace</span> <span class="tp">Validation</span> {
+  <span class="kw">export interface</span> <span class="tp">StringValidator</span> {
+    isValid(s: <span class="tp">string</span>): <span class="tp">boolean</span>;
+  }
+  <span class="kw">export function</span> validateEmail(s: <span class="tp">string</span>): <span class="tp">boolean</span> {
+    <span class="kw">return</span> s.includes(<span class="st">"@"</span>);
+  }
+}
+
+<span class="cm">// Modern pattern — ES6 modules</span>
+<span class="cm">// validators.ts</span>
+<span class="kw">export interface</span> <span class="tp">StringValidator</span> { ... }
+<span class="kw">export function</span> validateEmail(s: <span class="tp">string</span>): <span class="tp">boolean</span> { ... }</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Namespaces = <strong>legacy organizational tool</strong>. Prefer ES6 modules (<code>import</code>/<code>export</code>) for new code. Think of namespaces as the "old school" way before <code>import</code>/<code>export</code> existed in JS.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 — .d.ts (Q39) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What are <code>.d.ts</code> declaration files?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>.d.ts</code> files are <strong>declaration files</strong> that describe the type shape of JavaScript code without containing any implementation. They tell TypeScript "this JS library exists and here's its API." When you install <code>@types/lodash</code>, you're installing a <code>.d.ts</code> file that describes Lodash's types.
+          </p>
+          <p>
+            Key properties: no runtime code (no JS output), only type declarations. TypeScript automatically loads <code>.d.ts</code> files found in your project or <code>node_modules/@types</code>.
+          </p>
+<pre><code><span class="cm">// lodash.d.ts — type descriptions only, no implementation</span>
+<span class="kw">declare module</span> <span class="st">'lodash'</span> {
+  <span class="kw">export function</span> debounce&lt;T <span class="kw">extends</span> (...args: <span class="tp">any</span>[]) => <span class="tp">void</span>&gt;(
+    func: T,
+    wait?: <span class="tp">number</span>
+  ): T;
+  <span class="kw">export function</span> cloneDeep&lt;T&gt;(value: T): T;
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>.d.ts</code> = <strong>type description without code</strong>. Think of it as a restaurant menu — it tells you what's available, but isn't the food itself.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 — strictNullChecks (Q40) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What does <code>strictNullChecks</code> do?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            When <code>strictNullChecks</code> is enabled, <code>null</code> and <code>undefined</code> are <strong>no longer assignable to every type</strong>. Without it, <code>let name: string = null</code> is legal (dangerous!). With it, you must explicitly opt in: <code>let name: string | null = null</code>.
+          </p>
+          <p>
+            This eliminates an entire category of bugs — the infamous <code>TypeError: Cannot read property 'x' of null/undefined</code>. The compiler forces you to handle null cases explicitly via narrowing (<code>if (value !== null)</code>), optional chaining (<code>value?.prop</code>), or nullish coalescing (<code>value ?? default</code>).
+          </p>
+<pre><code><span class="cm">// strictNullChecks: false (dangerous)</span>
+<span class="kw">let</span> name: <span class="tp">string</span> = <span class="kw">null</span>; <span class="cm">// OK — no error!</span>
+name.toUpperCase(); <span class="cm">// Runtime crash: Cannot read property of null</span>
+
+<span class="cm">// strictNullChecks: true (safe)</span>
+<span class="kw">let</span> name: <span class="tp">string</span> = <span class="kw">null</span>; <span class="cm">// Error! null not assignable to string</span>
+<span class="kw">let</span> name: <span class="tp">string | null</span> = <span class="kw">null</span>; <span class="cm">// OK — explicit null handling</span>
+<span class="kw">if</span> (name !== <span class="kw">null</span>) name.toUpperCase(); <span class="cm">// Safe after narrowing</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>strictNullChecks</code> = <strong>"null is not a valid string/number/etc."</strong> Always enable it. It's the single biggest safety improvement in TypeScript.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 — Recursive Types (Q41) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What are recursive types?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Recursive types are <strong>types that reference themselves</strong> in their own definition. They model nested, self-similar data structures like trees, linked lists, JSON objects, and file systems. The type contains a property of the same type, creating a structure that can be infinitely deep.
+          </p>
+<pre><code><span class="cm">// Binary tree node</span>
+<span class="kw">interface</span> <span class="tp">TreeNode</span> {
+  value: <span class="tp">number</span>;
+  left?: <span class="tp">TreeNode</span>;  <span class="cm">// references itself</span>
+  right?: <span class="tp">TreeNode</span>;
+}
+
+<span class="cm">// Linked list node</span>
+<span class="kw">interface</span> <span class="tp">ListNode</span>&lt;T&gt; {
+  data: T;
+  next?: <span class="tp">ListNode</span>&lt;T&gt;; <span class="cm">// references itself</span>
+}
+
+<span class="cm">// Usage — tree of depth 3</span>
+<span class="kw">const</span> tree: <span class="tp">TreeNode</span> = {
+  value: <span class="nm">1</span>,
+  left: { value: <span class="nm">2</span>, left: { value: <span class="nm">4</span> } },
+  right: { value: <span class="nm">3</span> }
+};</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Recursive types = <strong>self-referencing types</strong>. If the data nests inside itself (trees, lists, JSON), use a recursive type. Like a mirror reflecting a mirror.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q5 — Variadic Tuple Types (Q42) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">5</span>
+          <span>What are variadic tuple types?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Variadic tuple types allow <strong>spreading generic type parameters inside tuple definitions</strong>. This lets you write type-level functions that manipulate tuples — concatenating them, prepending/appending elements, or transforming their contents — while preserving full type information.
+          </p>
+<pre><code><span class="cm">// Concat two tuples at the type level</span>
+<span class="kw">type</span> <span class="tp">Concat</span>&lt;A <span class="kw">extends</span> <span class="tp">readonly unknown</span>[], B <span class="kw">extends</span> <span class="tp">readonly unknown</span>[]&gt; =
+  [...A, ...B];
+
+<span class="kw">type</span> Result = <span class="tp">Concat</span>&lt;[<span class="tp">string</span>, <span class="tp">number</span>], [<span class="tp">boolean</span>]&gt;;
+<span class="cm">// Result = [string, number, boolean]</span>
+
+<span class="cm">// Prepend a head element</span>
+<span class="kw">type</span> <span class="tp">Prepend</span>&lt;T, Arr <span class="kw">extends</span> <span class="tp">readonly unknown</span>[]> = [T, ...Arr];
+<span class="kw">type</span> WithHead = <span class="tp">Prepend</span>&lt;<span class="tp">string</span>, [<span class="tp">number</span>, <span class="tp">boolean</span>]&gt;;
+<span class="cm">// WithHead = [string, number, boolean]</span>
+
+<span class="cm">// Practical use: typed function argument piping</span>
+<span class="kw">function</span> pipe&lt;T <span class="kw">extends</span> <span class="tp">readonly unknown</span>[]&gt;(
+  ...args: [...T, (...params: T) => <span class="tp">void</span>]
+) { /* ... */ }</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Variadic tuples = <strong>generic spread in tuples</strong>. Think of them as "type-level array manipulation" — concat, prepend, append while keeping exact types.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q6 — Exhaustive Checking (Q44) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">6</span>
+          <span>How do you perform exhaustive checking in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Exhaustive checking uses the <code>never</code> type to ensure <strong>all cases of a union are handled</strong> in a switch or if-else chain. In the <code>default</code> case, assign the value to a <code>never</code>-typed variable. If you later add a new member to the union and forget to add a case, TypeScript will produce a compile error because the new type can't be assigned to <code>never</code>.
+          </p>
+<pre><code><span class="kw">type</span> <span class="tp">Shape</span> = <span class="st">"circle"</span> | <span class="st">"square"</span> | <span class="st">"triangle"</span>;
+
+<span class="kw">function</span> getArea(shape: <span class="tp">Shape</span>): <span class="tp">number</span> {
+  <span class="kw">switch</span> (shape) {
+    <span class="kw">case</span> <span class="st">"circle"</span>:   <span class="kw">return</span> Math.PI;
+    <span class="kw">case</span> <span class="st">"square"</span>:   <span class="kw">return</span> <span class="nm">1</span>;
+    <span class="kw">case</span> <span class="st">"triangle"</span>: <span class="kw">return</span> <span class="nm">0.5</span>;
+    <span class="kw">default</span>:
+      <span class="cm">// If a new shape is added to the union but not handled above,</span>
+      <span class="cm">// this assignment will fail to compile:</span>
+      <span class="kw">const</span> _exhaustive: <span class="tp">never</span> = shape;
+      <span class="kw">throw new</span> Error(<span class="st">`Unhandled shape: ${_exhaustive}`</span>);
+  }
+}
+
+<span class="cm">// Add "hexagon" to Shape → compile error in default case!</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>never</code> in default = <strong>compiler-enforced exhaustive check</strong>. If you add a new union member and forget a case, the compiler catches it immediately.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q7 — Branded Types (Q45) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">7</span>
+          <span>What are branded types and why do they exist?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            TypeScript uses <strong>structural typing</strong> (duck typing) — if two types have the same shape, they're compatible. Branded types (also called opaque types or nominal types) <strong>add a unique marker to a type</strong> so that even identical structures become incompatible. This prevents accidentally passing a <code>UserId</code> where an <code>OrderId</code> is expected, even though both are <code>string</code>.
+          </p>
+<pre><code><span class="cm">// Branded type pattern</span>
+<span class="kw">type</span> <span class="tp">Brand</span>&lt;T, B&gt; = T & { __brand: B };
+
+<span class="kw">type</span> <span class="tp">UserId</span> = <span class="tp">Brand</span>&lt;<span class="tp">string</span>, <span class="st">"UserId"</span>&gt;;
+<span class="kw">type</span> <span class="tp">OrderId</span> = <span class="tp">Brand</span>&lt;<span class="tp">string</span>, <span class="st">"OrderId"</span>&gt;;
+
+<span class="kw">function</span> getUser(id: <span class="tp">UserId</span>) { /* ... */ }
+<span class="kw">function</span> getOrder(id: <span class="tp">OrderId</span>) { /* ... */ }
+
+<span class="kw">const</span> uid = <span class="st">"abc"</span> <span class="kw">as</span> <span class="tp">UserId</span>;
+<span class="kw">const</span> oid = <span class="st">"xyz"</span> <span class="kw">as</span> <span class="tp">OrderId</span>;
+
+getUser(uid); <span class="cm">// OK</span>
+getUser(oid); <span class="cm">// Error! OrderId not assignable to UserId</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Branded types = <strong>same structure, different identity</strong>. Like a passport — it's still paper with your name, but the country code makes it unique.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q8 — Access Modifiers (Q48) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">8</span>
+          <span>What are TypeScript access modifiers and how do they work?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            TypeScript has four access levels: <code>public</code> (default, accessible everywhere), <code>private</code> (class only, compile-time check only), <code>protected</code> (class + subclasses), and <code>#</code> prefix (ECMAScript private, <strong>runtime privacy</strong> enforced by the JS engine).
+          </p>
+          <p>
+            <strong>Critical distinction:</strong> TypeScript's <code>private</code> keyword is a <em>compile-time illusion</em> — it's erased at runtime, so JavaScript code can still access the property. The <code>#</code> prefix (e.g., <code>#secret</code>) is <strong>real runtime privacy</strong> enforced by the JavaScript engine itself.
+          </p>
+<pre><code><span class="kw">class</span> <span class="tp">Wallet</span> {
+  <span class="kw">public</span> owner: <span class="tp">string</span>;       <span class="cm">// default — accessible anywhere</span>
+  <span class="kw">private</span> balance: <span class="tp">number</span>;    <span class="cm">// compile-time only — not in .js</span>
+  <span class="kw">protected</span> id: <span class="tp">string</span>;      <span class="cm">// class + subclasses only</span>
+  <span class="cm">#secret</span>: <span class="tp">string</span>;            <span class="cm">// TRUE privacy — runtime enforced</span>
+
+  <span class="kw">constructor</span>(owner: <span class="tp">string</span>) {
+    <span class="kw">this</span>.owner = owner;
+    <span class="kw">this</span>.balance = <span class="nm">0</span>;
+    <span class="kw">this</span>.id = crypto.randomUUID();
+    <span class="kw">this</span>.<span class="cm">#secret</span> = <span class="st">"hidden"</span>;
+  }
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            TS <code>private</code> = <strong>compile-time illusion</strong> (erased at runtime). <code>#private</code> = <strong>real privacy</strong> (enforced by JS engine). Use <code>#</code> when you need actual runtime encapsulation.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q9 — Structural Typing (Q49) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">9</span>
+          <span>What typing system does TypeScript use?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            TypeScript uses <strong>structural typing</strong> (duck typing) — type compatibility is determined by the <em>shape</em> of types, not their names or declarations. If type A has all the properties that type B requires, A is assignable to B, regardless of what A or B are called. This is the opposite of <strong>nominal typing</strong> (used by Java, C#) where types must share a name or inheritance chain.
+          </p>
+<pre><code><span class="kw">interface</span> <span class="tp">Named</span> { name: <span class="tp">string</span>; }
+<span class="kw">interface</span> <span class="tp">Person</span> { name: <span class="tp">string</span>; age: <span class="tp">number</span>; }
+
+<span class="kw">const</span> p: <span class="tp">Person</span> = { name: <span class="st">"Ali"</span>, age: <span class="nm">25</span> };
+
+<span class="cm">// Person is assignable to Named — same shape</span>
+<span class="kw">const</span> n: <span class="tp">Named</span> = p; <span class="cm">// OK — structural compatibility</span>
+
+<span class="cm">// For nominal behavior, use branded types</span>
+<span class="kw">type</span> <span class="tp">USD</span> = <span class="tp">Brand</span>&lt;<span class="tp">number</span>, <span class="st">"USD"</span>&gt;;
+<span class="kw">type</span> <span class="tp">EUR</span> = <span class="tp">Brand</span>&lt;<span class="tp">number</span>, <span class="st">"EUR"</span>&gt;;
+<span class="cm">// Both are number, but now incompatible!</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            TypeScript = <strong>"if it looks like a duck, it is a duck"</strong>. Shape matters, not name. Want name-based safety? Use branded types.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q10 — emitDecoratorMetadata (Q46) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">10</span>
+          <span>What does <code>emitDecoratorMetadata</code> do?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>emitDecoratorMetadata</code> is a TypeScript compiler option that <strong>embeds type information into the emitted JavaScript</strong> as decorator metadata. When enabled, the compiler adds <code>design:type</code>, <code>design:paramtypes</code>, and <code>design:returntype</code> metadata entries that decorators can read at runtime. This is heavily used by frameworks like <strong>NestJS</strong> and <strong>TypeORM</strong> for dependency injection and ORM mapping.
+          </p>
+<pre><code><span class="cm">// tsconfig.json</span>
+{
+  <span class="st">"compilerOptions"</span>: {
+    <span class="st">"experimentalDecorators"</span>: <span class="kw">true</span>,
+    <span class="st">"emitDecoratorMetadata"</span>: <span class="kw">true</span>
+  }
+}
+
+<span class="cm">// NestJS uses this for automatic DI</span>
+<span class="kw">@Injectable</span>()
+<span class="kw">class</span> <span class="tp">UserService</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> repo: <span class="tp">UserRepository</span>) {}
+  <span class="cm">//                  ^ type metadata emitted → NestJS resolves</span>
+  <span class="cm">//                    the dependency automatically at runtime</span>
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>emitDecoratorMetadata</code> = <strong>runtime type info for decorators</strong>. Enables frameworks (NestJS, TypeORM) to "see" TypeScript types at runtime for DI and ORM mapping.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q11 — Type-Level Programming (Q47) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">11</span>
+          <span>What is type-level programming in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Type-level programming means <strong>using TypeScript's type system as a mini programming language</strong> — writing logic that "runs" entirely in the compiler, not at runtime. You use conditional types, mapped types, recursive types, template literal types, and inference to compute new types from existing ones. The output is a type, not a value.
+          </p>
+<pre><code><span class="cm">// Type-level string manipulation</span>
+<span class="kw">type</span> <span class="tp">Capitalize</span>&lt;S <span class="kw">extends</span> <span class="tp">string</span>&gt; =
+  S <span class="kw">extends</span> <span class="st">`${infer First}${infer Rest}`</span>
+    ? <span class="st">`${Uppercase&lt;First&gt;}${Rest}`</span>
+    : S;
+
+<span class="kw">type</span> Result = <span class="tp">Capitalize</span>&lt;<span class="st">"hello"</span>&gt;; <span class="cm">// "Hello"</span>
+
+<span class="cm">// Type-level arithmetic (depth limit)</span>
+<span class="kw">type</span> <span class="tp">Length</span>&lt;T <span class="kw">extends</span> <span class="tp">any</span>[]> = T[<span class="st">'length'</span>];
+<span class="kw">type</span> <span class="tp">Three</span> = <span class="tp">Length</span>&lt;[<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>]&gt;; <span class="cm">// 3 (number literal type)</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Type-level programming = <strong>"code that runs in the compiler"</strong>. Input = types, output = types. No JS is generated — it's purely compile-time computation.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q12 — Module Augmentation (Q50) -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">12</span>
+          <span>What is module augmentation?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Module augmentation lets you <strong>add types to someone else's module</strong> — extending or modifying the type declarations of third-party libraries (or your own modules) without editing the original source. It uses <code>declare module 'library-name'</code> to add new properties, functions, or interfaces to an existing module's type definitions.
+          </p>
+<pre><code><span class="cm">// Extend Express Request with custom properties</span>
+<span class="kw">declare module</span> <span class="st">'express'</span> {
+  <span class="kw">interface</span> <span class="tp">Request</span> {
+    user?: {
+      id: <span class="tp">string</span>;
+      role: <span class="st">'admin'</span> | <span class="st">'user'</span>;
+    };
+    sessionId?: <span class="tp">string</span>;
+  }
+}
+
+<span class="cm">// Now req.user and req.sessionId are typed everywhere</span>
+app.get(<span class="st">'/profile'</span>, (req, res) => {
+  <span class="kw">const</span> userId = req.user?.id; <span class="cm">// Fully typed!</span>
+});</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Module augmentation = <strong>"add types to someone else's module"</strong>. Like adding a sticky note to a library book — you extend it without modifying the original.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">1. What does <code>strictNullChecks</code> prevent?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Using <code>any</code> in the codebase</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Implicit <code>any</code> types on variables</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Assigning <code>null</code>/<code>undefined</code> to non-nullable types</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Runtime type checking of function arguments</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>strictNullChecks</code> makes <code>null</code> and <code>undefined</code> their own distinct types — they can't silently sneak into <code>string</code>, <code>number</code>, etc.</div>
+      <div class="quiz-feedback incorrect">❌ <code>strictNullChecks</code> prevents <code>null</code> and <code>undefined</code> from being assignable to other types. You must explicitly opt in with <code>T | null</code>.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">2. What is the purpose of assigning to <code>never</code> in a switch default?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> To silence the compiler about unreachable code</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> To get a compile error if a union member is unhandled</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> To mark the function as never returning</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> To cast the value to the <code>never</code> type</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Assigning to <code>never</code> in the default case causes a compile error whenever a new union member is added but not handled.</div>
+      <div class="quiz-feedback incorrect">❌ The <code>never</code> assignment in default is an exhaustive check — if a new union member is added but not handled in the switch, TypeScript produces a compile error.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. What is the key difference between TypeScript's <code>private</code> and <code>#</code> private fields?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>private</code> is compile-time only; <code>#</code> is runtime enforced</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>private</code> works in classes; <code>#</code> works in interfaces</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> They are identical — just different syntax</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>#</code> is older and deprecated in favor of <code>private</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! TypeScript's <code>private</code> is erased at compile time — no runtime protection. <code>#</code> fields are ECMAScript standard and enforced by the JS engine itself.</div>
+      <div class="quiz-feedback incorrect">❌ TypeScript's <code>private</code> is a compile-time check only (erased in JS output). The <code>#</code> prefix provides real runtime privacy enforced by the JavaScript engine.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Have questions about advanced TypeScript features? Ask your AI teacher — no question is too deep.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0009-patterns.html">← Previous: Design Patterns</a>
+    <a href="0011-final-puzzles.html">Next: Final Puzzles →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

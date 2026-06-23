@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 11 — Final Exam: TypeScript Puzzles</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 11 of 11</span>
+    <h1>Final Exam: TypeScript Puzzles</h1>
+    <p class="subtitle">Test your applied knowledge — 12 puzzles from easy to hard. Try to solve each before revealing the answer.</p>
+  </div>
+
+  <!-- Instructions -->
+  <div class="objectives">
+    <h2>How This Works</h2>
+    <ul>
+      <li>Read each puzzle carefully. Try to solve it mentally or on paper first.</li>
+      <li>Click <strong>"Reveal Solution"</strong> only after you've formed your answer.</li>
+      <li>Puzzles are organized in three tiers: <strong>Easy</strong>, <strong>Medium</strong>, and <strong>Hard</strong>.</li>
+      <li>Solutions explain <em>why</em>, not just what — the reasoning is the real lesson.</li>
+    </ul>
+  </div>
+
+  <!-- Progress Counter -->
+  <div style="text-align:center; margin-bottom: var(--space-xl);">
+    <span id="progressCounter" style="font-size:0.9rem; color: var(--text-secondary); font-weight:600;">Puzzles attempted: 0 of 12</span>
+  </div>
+
+  <!-- ============================================ -->
+  <!--              EASY PUZZLES (1–4)              -->
+  <!-- ============================================ -->
+  <div class="content-section">
+    <h2>🟢 Easy Puzzles</h2>
+
+    <!-- Puzzle 1 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 1 — What's the Type?</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Look at this code. What is the <strong>type</strong> of <code>result</code>? Not the runtime value — the TypeScript type.
+        </p>
+<pre><code><span class="kw">type</span> <span class="tp">A</span> = { <span class="tp">name</span>: <span class="tp">string</span>; <span class="tp">age</span>: <span class="tp">number</span> };
+<span class="kw">type</span> <span class="tp">B</span> = { <span class="tp">name</span>: <span class="tp">string</span>; <span class="tp">email</span>: <span class="tp">string</span> };
+
+<span class="kw">type</span> <span class="tp">Result</span> = <span class="tp">A</span> &amp; <span class="tp">B</span>;
+
+<span class="cm">// What is the type of Result?</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <code>Result</code> is an <strong>intersection type</strong> that combines both <code>A</code> and <code>B</code>.
+            </p>
+<pre><code><span class="cm">// Result is equivalent to:</span>
+{
+  <span class="tp">name</span>: <span class="tp">string</span>;   <span class="cm">// from both A and B (same type — compatible)</span>
+  <span class="tp">age</span>: <span class="tp">number</span>;   <span class="cm">// from A</span>
+  <span class="tp">email</span>: <span class="tp">string</span>;  <span class="cm">// from B</span>
+}</code></pre>
+            <p>
+              <strong>Why:</strong> The <code>&amp;</code> operator creates an intersection — a value must satisfy <em>both</em> types. The <code>name</code> property appears in both but with the same type (<code>string</code>), so it merges cleanly. If the types conflicted (e.g., <code>name: string</code> vs <code>name: number</code>), the resulting property would be <code>never</code> — no value can be both.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Intersection (<code>&amp;</code>) = AND. Union (<code>|</code>) = OR. <code>A &amp; B</code> requires <em>all</em> properties from both. <code>A | B</code> requires properties from <em>either</em>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 2 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 2 — Fix the Type Error</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          This code has a type error. What's wrong, and how do you fix it with <strong>minimal changes</strong>?
+        </p>
+<pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  <span class="tp">id</span>: <span class="tp">number</span>;
+  <span class="tp">name</span>: <span class="tp">string</span>;
+  <span class="tp">role</span>: <span class="st">"admin"</span> | <span class="st">"user"</span>;
+}
+
+<span class="kw">const</span> user: <span class="tp">User</span> = {
+  <span class="tp">id</span>: <span class="nm">1</span>,
+  <span class="tp">name</span>: <span class="st">"Alice"</span>,
+};</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              The <code>role</code> property is required in the interface but missing from the object literal. TypeScript error: <em>"Property 'role' is missing in type... but required in type 'User'"</em>.
+            </p>
+            <p><strong>Fix — add the missing property:</strong></p>
+<pre><code><span class="kw">const</span> user: <span class="tp">User</span> = {
+  <span class="tp">id</span>: <span class="nm">1</span>,
+  <span class="tp">name</span>: <span class="st">"Alice"</span>,
+  <span class="tp">role</span>: <span class="st">"admin"</span>,   <span class="cm">// ✅ must be "admin" or "user"</span>
+};</code></pre>
+            <p>
+              <strong>Alternative fixes</strong> (not minimal, but valid): Make <code>role</code> optional with <code>role?: "admin" | "user"</code>, or give it a default. But the <em>minimal</em> fix is just adding the missing property.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              TypeScript enforces <strong>structural typing strictly</strong> — every required property must be present. Optional properties (marked with <code>?</code>) can be omitted.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 3 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 3 — What Type Satisfies This?</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Write a type <code>Status</code> that meets <strong>all</strong> these requirements:
+        </p>
+        <ul style="margin: var(--space-md) 0; padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+          <li>Must be one of three string values: <code>"pending"</code>, <code>"active"</code>, <code>"closed"</code></li>
+          <li>Must NOT accept arbitrary strings like <code>"unknown"</code></li>
+          <li>Must be usable as an object key</li>
+        </ul>
+<pre><code><span class="cm">// Your type here:</span>
+<span class="kw">type</span> <span class="tp">Status</span> = <span class="cm">/* ??? */</span>;
+
+<span class="cm">// These should work:</span>
+<span class="kw">const</span> s1: <span class="tp">Status</span> = <span class="st">"pending"</span>;
+<span class="kw">const</span> s2: <span class="tp">Status</span> = <span class="st">"active"</span>;
+
+<span class="cm">// This must fail:</span>
+<span class="kw">const</span> s3: <span class="tp">Status</span> = <span class="st">"unknown"</span>; <span class="cm">// ❌ Error</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p><strong>Answer:</strong></p>
+<pre><code><span class="kw">type</span> <span class="tp">Status</span> = <span class="st">"pending"</span> | <span class="st">"active"</span> | <span class="st">"closed"</span>;</code></pre>
+            <p>
+              <strong>Why this works:</strong> This is a <strong>string literal union</strong>. It's <em>narrower</em> than <code>string</code> — only those three exact values are assignable. Any other string produces a compile error. String literals are valid object keys because they're subtypes of <code>string</code>.
+            </p>
+            <p>
+              <strong>Why not <code>enum</code>?</strong> Enums work too, but string literal unions are lighter — no runtime cost, no generated JS code, and they're the idiomatic modern TypeScript approach.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              String literal unions are TypeScript's way of creating <strong>closed sets of values</strong>. They give you enum-like safety without enum's runtime overhead.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 4 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 4 — Predict the Error</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Which line has a type error, and why?
+        </p>
+<pre><code><span class="kw">function</span> <span class="fn">greet</span>(name: <span class="tp">string</span> | <span class="tp">null</span>): <span class="tp">string</span> {
+  <span class="kw">return</span> <span class="st">"Hello, "</span> + name.toUpperCase();  <span class="cm">// Line A</span>
+}
+
+<span class="kw">const</span> x: <span class="tp">string</span> | <span class="tp">number</span> = <span class="nm">42</span>;
+<span class="kw">const</span> y: <span class="tp">string</span> = x;                    <span class="cm">// Line B</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>Both lines error.</strong>
+            </p>
+            <p>
+              <strong>Line A:</strong> <code>name</code> is <code>string | null</code>. Calling <code>.toUpperCase()</code> on <code>null</code> crashes at runtime, so TypeScript rejects it. <em>Fix:</em> narrow with <code>if (name !== null)</code> or use the optional chain <code>name?.toUpperCase() ?? "stranger"</code>.
+            </p>
+            <p>
+              <strong>Line B:</strong> <code>x</code> is typed as <code>string | number</code>. Assigning it to <code>y: string</code> is unsafe — what if <code>x</code> is <code>42</code> (a number)? TypeScript won't allow this <strong>without explicit narrowing</strong>.
+            </p>
+<pre><code><span class="cm">// Fixed Line A:</span>
+<span class="kw">function</span> <span class="fn">greet</span>(name: <span class="tp">string</span> | <span class="tp">null</span>): <span class="tp">string</span> {
+  <span class="kw">if</span> (name === <span class="tp">null</span>) <span class="kw">return</span> <span class="st">"Hello, stranger"</span>;
+  <span class="kw">return</span> <span class="st">"Hello, "</span> + name.toUpperCase(); <span class="cm">// ✅ narrowed to string</span>
+}
+
+<span class="cm">// Fixed Line B:</span>
+<span class="kw">if</span> (<span class="kw">typeof</span> x === <span class="st">"string"</span>) {
+  <span class="kw">const</span> y: <span class="tp">string</span> = x; <span class="cm">// ✅ narrowed to string</span>
+}</code></pre>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Union types require <strong>narrowing</strong> before accessing members. TypeScript forces you to prove which member of the union you're working with.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--            MEDIUM PUZZLES (5–8)              -->
+  <!-- ============================================ -->
+  <div class="content-section">
+    <h2>🟡 Medium Puzzles</h2>
+
+    <!-- Puzzle 5 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 5 — Write a Generic Safe Getter</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Write a generic function <code>getNestedValue</code> that safely retrieves a nested property from an object. It should return <code>undefined</code> if any part of the path doesn't exist. <strong>No <code>any</code> allowed.</strong>
+        </p>
+<pre><code><span class="cm">// Implement this:</span>
+<span class="kw">function</span> <span class="fn">getNestedValue</span>&lt;<span class="tp">T</span>, <span class="tp">K1</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">T</span>&gt;(
+  obj: <span class="tp">T</span>,
+  key: <span class="tp">K1</span>
+): <span class="cm">/* ??? */</span>;
+
+<span class="cm">// Usage:</span>
+<span class="kw">const</span> data = { user: { profile: { name: <span class="st">"Alice"</span> } } };
+<span class="fn">getNestedValue</span>(data, <span class="st">"user"</span>);            <span class="cm">// { profile: { name: "Alice" } }</span>
+<span class="fn">getNestedValue</span>(data.user.profile, <span class="st">"name"</span>); <span class="cm">// "Alice"</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p><strong>Single-level safe getter:</strong></p>
+<pre><code><span class="kw">function</span> <span class="fn">getNestedValue</span>&lt;<span class="tp">T</span>, <span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">T</span>&gt;(
+  obj: <span class="tp">T</span>,
+  key: <span class="tp">K</span>
+): <span class="tp">T</span>[<span class="tp">K</span>] | <span class="tp">undefined</span> {
+  <span class="kw">return</span> obj?.[key];
+}</code></pre>
+            <p>
+              <strong>For deep nesting</strong>, a more practical approach uses a dot-path string with recursive conditional types:
+            </p>
+<pre><code><span class="kw">type</span> <span class="tp">DeepValue</span>&lt;<span class="tp">T</span>, <span class="tp">P</span> <span class="kw">extends</span> <span class="tp">string</span>&gt; =
+  <span class="tp">P</span> <span class="kw">extends</span> <span class="st">""</span> ? <span class="tp">T</span> :
+  <span class="tp">P</span> <span class="kw">extends</span> <span class="st">""</span> ? <span class="tp">T</span> :
+  <span class="tp">P</span> <span class="kw">extends</span> <span class="kw">infer</span> <span class="tp">Key</span> <span class="kw">extends</span> <span class="kw">infer</span> <span class="tp">K</span> ?
+    <span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">T</span> ?
+      <span class="tp">P</span> <span class="kw">extends</span> <span class="st">" "</span> ?
+        <span class="tp">T</span>[<span class="tp">K</span>] :
+        <span class="tp">T</span>[<span class="tp">K</span>]
+    : <span class="tp">undefined</span>
+  : <span class="tp">never</span>;
+
+<span class="cm">// Simpler practical approach with type assertion:</span>
+<span class="kw">function</span> <span class="fn">get</span>&lt;<span class="tp">T</span>&gt;(obj: <span class="tp">unknown</span>, path: <span class="tp">string</span>): <span class="tp">T</span> | <span class="tp">undefined</span> {
+  <span class="kw">const</span> keys = path.split(<span class="st">"."</span>);
+  <span class="kw">let</span> result: <span class="tp">unknown</span> = obj;
+  <span class="kw">for</span> (<span class="kw">const</span> key <span class="kw">of</span> keys) {
+    <span class="kw">if</span> (result == <span class="tp">null</span> || <span class="kw">typeof</span> result !== <span class="st">"object"</span>) {
+      <span class="kw">return</span> <span class="tp">undefined</span>;
+    }
+    result = (result <span class="kw">as</span> <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">unknown</span>&gt;)[key];
+  }
+  <span class="kw">return</span> result <span class="kw">as</span> <span class="tp">T</span> | <span class="tp">undefined</span>;
+}</code></pre>
+            <p>
+              <strong>Why:</strong> The generic version ensures <code>key</code> is a valid key of <code>T</code> — passing a non-existent key is a compile error. The return type <code>T[K]</code> preserves the exact type of the property. Using <code>unknown</code> instead of <code>any</code> for intermediate values keeps type safety.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              <code>keyof T</code> creates a union of all keys of <code>T</code>. Using <code>K extends keyof T</code> constrains the key parameter to only valid property names.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 6 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 6 — Design a Discriminated Union Event System</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Design a type-safe event system using <strong>discriminated unions</strong>. Each event type should have a <code>type</code> field and a different <code>payload</code> shape. Then write a <code>handleEvent</code> function that TypeScript can fully narrow.
+        </p>
+<pre><code><span class="cm">// Define these types:</span>
+<span class="kw">type</span> <span class="tp">UserCreatedEvent</span> = <span class="cm">/* ??? */</span>;
+<span class="kw">type</span> <span class="tp">UserDeletedEvent</span> = <span class="cm">/* ??? */</span>;
+<span class="kw">type</span> <span class="tp">UserUpdatedEvent</span> = <span class="cm">/* ??? */</span>;
+<span class="kw">type</span> <span class="tp">AppEvent</span> = <span class="cm">/* ??? */</span>;
+
+<span class="cm">// This function must be fully type-safe (no assertions):</span>
+<span class="kw">function</span> <span class="fn">handleEvent</span>(event: <span class="tp">AppEvent</span>): <span class="tp">void</span> {
+  <span class="cm">// implement</span>
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="kw">type</span> <span class="tp">UserCreatedEvent</span> = {
+  <span class="tp">type</span>: <span class="st">"user_created"</span>;
+  <span class="tp">payload</span>: { <span class="tp">id</span>: <span class="tp">string</span>; <span class="tp">name</span>: <span class="tp">string</span>; <span class="tp">email</span>: <span class="tp">string</span> };
+};
+
+<span class="kw">type</span> <span class="tp">UserDeletedEvent</span> = {
+  <span class="tp">type</span>: <span class="st">"user_deleted"</span>;
+  <span class="tp">payload</span>: { <span class="tp">id</span>: <span class="tp">string</span>; <span class="tp">reason</span>: <span class="tp">string</span> };
+};
+
+<span class="kw">type</span> <span class="tp">UserUpdatedEvent</span> = {
+  <span class="tp">type</span>: <span class="st">"user_updated"</span>;
+  <span class="tp">payload</span>: { <span class="tp">id</span>: <span class="tp">string</span>; <span class="tp">changes</span>: <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">unknown</span>&gt; };
+};
+
+<span class="kw">type</span> <span class="tp">AppEvent</span> = <span class="tp">UserCreatedEvent</span> | <span class="tp">UserDeletedEvent</span> | <span class="tp">UserUpdatedEvent</span>;
+
+<span class="kw">function</span> <span class="fn">handleEvent</span>(event: <span class="tp">AppEvent</span>): <span class="tp">void</span> {
+  <span class="kw">switch</span> (event.type) {
+    <span class="kw">case</span> <span class="st">"user_created"</span>:
+      console.log(<span class="st">"Created:"</span>, event.payload.name);   <span class="cm">// ✅ payload.name exists</span>
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="st">"user_deleted"</span>:
+      console.log(<span class="st">"Deleted:"</span>, event.payload.reason); <span class="cm">// ✅ payload.reason exists</span>
+      <span class="kw">break</span>;
+    <span class="kw">case</span> <span class="st">"user_updated"</span>:
+      console.log(<span class="st">"Updated:"</span>, event.payload.changes); <span class="cm">// ✅ payload.changes exists</span>
+      <span class="kw">break</span>;
+  }
+}</code></pre>
+            <p>
+              <strong>Why this works:</strong> The <code>type</code> field is the <strong>discriminant</strong> — a common property with a unique literal value on each variant. When you check <code>event.type</code> in a switch, TypeScript <em>narrows</em> the union to that specific variant, so <code>event.payload</code> knows its exact shape. No type assertions needed.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Discriminated unions = <strong>a shared literal field + switch/if narrowing</strong>. This pattern is TypeScript's answer to sum types / algebraic data types. It's how Redux actions, AST nodes, and network responses are typed in real codebases.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 7 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 7 — Fix the Type Narrowing</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          This function is supposed to safely format user input, but TypeScript errors on every property access. Add the <strong>minimal type guards</strong> to make it compile without errors — no <code>any</code>, no type assertions.
+        </p>
+<pre><code><span class="kw">function</span> <span class="fn">formatInput</span>(input: <span class="tp">unknown</span>): <span class="tp">string</span> {
+  <span class="cm">// ERROR: Property 'name' does not exist on type 'unknown'</span>
+  <span class="kw">if</span> (input.name !== <span class="tp">undefined</span>) {
+    <span class="kw">return</span> input.name.toUpperCase();
+  }
+  <span class="cm">// ERROR: Property 'length' does not exist on type 'unknown'</span>
+  <span class="kw">if</span> (input.length > <span class="nm">0</span>) {
+    <span class="kw">return</span> String(input);
+  }
+  <span class="kw">return</span> <span class="st">"default"</span>;
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="kw">function</span> <span class="fn">formatInput</span>(input: <span class="tp">unknown</span>): <span class="tp">string</span> {
+  <span class="cm">// First: verify input is an object (not null, not primitive)</span>
+  <span class="kw">if</span> (
+    <span class="kw">typeof</span> input === <span class="st">"object"</span> &amp;&amp;
+    input !== <span class="tp">null</span> &amp;&amp;
+    <span class="st">"name"</span> <span class="kw">in</span> input
+  ) {
+    <span class="kw">const</span> obj = input <span class="kw">as</span> { <span class="tp">name</span>: <span class="tp">unknown</span> };
+    <span class="kw">if</span> (<span class="kw">typeof</span> obj.name === <span class="st">"string"</span>) {
+      <span class="kw">return</span> obj.name.toUpperCase(); <span class="cm">// ✅</span>
+    }
+  }
+
+  <span class="cm">// For length check: verify it's a string or array</span>
+  <span class="kw">if</span> (<span class="kw">typeof</span> input === <span class="st">"string"</span> &amp;&amp; input.length > <span class="nm">0</span>) {
+    <span class="kw">return</span> input; <span class="cm">// ✅ already a string</span>
+  }
+
+  <span class="kw">return</span> <span class="st">"default"</span>;
+}</code></pre>
+            <p>
+              <strong>Why the original fails:</strong> <code>unknown</code> doesn't allow any property access. You must <strong>narrow</strong> first. The <code>typeof</code> check narrows primitives. The <code>in</code> operator narrows objects. Each check peels away uncertainty.
+            </p>
+            <p>
+              <strong>The narrowing chain:</strong> <code>unknown</code> → <code>typeof === "object"</code> → <code>!== null</code> → <code>"name" in input</code> → now TypeScript knows it's an object with a <code>name</code> property.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              <code>typeof null === "object"</code> is a JS quirk. Always check <code>input !== null</code> after <code>typeof === "object"</code>. The <code>in</code> operator is the cleanest way to check for property existence in type guards.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 8 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 8 — Utility Type Composition</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          You have a full <code>User</code> interface. Create a <strong>update user</strong> type by composing utility types. Requirements:
+        </p>
+        <ul style="margin: var(--space-md) 0; padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+          <li>Start from <code>User</code> below</li>
+          <li>The <code>id</code> field must be <strong>required</strong></li>
+          <li>All other fields must be <strong>optional</strong></li>
+          <li>The <code>email</code> field should be <strong>excluded entirely</strong> (it's updated via a separate flow)</li>
+        </ul>
+<pre><code><span class="kw">interface</span> <span class="tp">User</span> {
+  <span class="tp">id</span>: <span class="tp">number</span>;
+  <span class="tp">name</span>: <span class="tp">string</span>;
+  <span class="tp">email</span>: <span class="tp">string</span>;
+  <span class="tp">role</span>: <span class="st">"admin"</span> | <span class="st">"editor"</span> | <span class="st">"viewer"</span>;
+  <span class="tp">isActive</span>: <span class="tp">boolean</span>;
+}
+
+<span class="cm">// Create this type using Pick, Omit, and Partial:</span>
+<span class="kw">type</span> <span class="tp">UpdateUserPayload</span> = <span class="cm">/* ??? */</span>;</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="kw">type</span> <span class="tp">UpdateUserPayload</span> =
+  &amp; { <span class="tp">id</span>: <span class="tp">number</span> }
+  &amp; <span class="tp">Partial</span>&lt;<span class="tp">Omit</span>&lt;<span class="tp">User</span>, <span class="st">"id"</span> | <span class="st">"email"</span>&gt;&gt;;
+
+<span class="cm">// Equivalent to:</span>
+<span class="cm">// {</span>
+<span class="cm">//   id: number;          // required</span>
+<span class="cm">//   name?: string;       // optional</span>
+<span class="cm">//   role?: "admin" | "editor" | "viewer";  // optional</span>
+<span class="cm">//   isActive?: boolean;  // optional</span>
+<span class="cm">//   // no email!</span>
+<span class="cm">// }</span></code></pre>
+            <p>
+              <strong>How it builds up:</strong>
+            </p>
+            <ol style="padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+              <li><code>Omit&lt;User, "id" | "email"&gt;</code> — removes both <code>id</code> and <code>email</code>, leaving <code>{ name, role, isActive }</code></li>
+              <li><code>Partial&lt;...&gt;</code> — makes all remaining fields optional</li>
+              <li><code>{ id: number } &amp; ...</code> — adds <code>id</code> back as required via intersection</li>
+            </ol>
+            <p>
+              <strong>Why composition over a hand-written type:</strong> If <code>User</code> gains new fields, <code>UpdateUserPayload</code> automatically picks them up as optional. Single source of truth.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Utility types compose like functions: <code>Partial(Omit(User, X))</code> is "remove X, then make optional". Think left-to-right, inner-to-outer.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--              HARD PUZZLES (9–12)             -->
+  <!-- ============================================ -->
+  <div class="content-section">
+    <h2>🔴 Hard Puzzles</h2>
+
+    <!-- Puzzle 9 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 9 — Write DeepReadonly&lt;T&gt;</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          TypeScript's built-in <code>Readonly&lt;T&gt;</code> only makes the <strong>top level</strong> readonly. Write <code>DeepReadonly&lt;T&gt;</code> that makes <strong>all nested properties</strong> readonly — recursively.
+        </p>
+<pre><code><span class="cm">// Built-in Readonly only does one level:</span>
+<span class="kw">type</span> <span class="tp">Shallow</span> = <span class="tp">Readonly</span>&lt;{ <span class="tp">nested</span>: { <span class="tp">value</span>: <span class="tp">string</span> } }&gt;;
+<span class="cm">// { readonly nested: { value: string } }</span>
+<span class="cm">// nested itself is NOT readonly — you can mutate nested.value</span>
+
+<span class="cm">// Your DeepReadonly should produce:</span>
+<span class="cm">// { readonly nested: { readonly value: string } }</span>
+
+<span class="kw">type</span> <span class="tp">DeepReadonly</span>&lt;<span class="tp">T</span>&gt; = <span class="cm">/* ??? */</span>;
+
+<span class="cm">// Test it:</span>
+<span class="kw">type</span> <span class="tp">Config</span> = {
+  <span class="tp">db</span>: {
+    <span class="tp">host</span>: <span class="tp">string</span>;
+    <span class="tp">port</span>: <span class="tp">number</span>;
+    <span class="tp">credentials</span>: {
+      <span class="tp">user</span>: <span class="tp">string</span>;
+      <span class="tp">pass</span>: <span class="tp">string</span>;
+    };
+  };
+  <span class="tp">debug</span>: <span class="tp">boolean</span>;
+};
+
+<span class="kw">type</span> <span class="tp">FrozenConfig</span> = <span class="tp">DeepReadonly</span>&lt;<span class="tp">Config</span>&gt;;
+<span class="cm">// All properties at every depth should be readonly</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="kw">type</span> <span class="tp">DeepReadonly</span>&lt;<span class="tp">T</span>&gt; = <span class="tp">T</span> <span class="kw">extends</span> <span class="tp">Function</span>
+  ? <span class="tp">T</span>
+  : <span class="tp">T</span> <span class="kw">extends</span> <span class="tp">object</span>
+    ? { <span class="kw">readonly</span> [<span class="tp">K</span> <span class="kw">in</span> <span class="kw">keyof</span> <span class="tp">T</span>]: <span class="tp">DeepReadonly</span>&lt;<span class="tp">T</span>[<span class="tp">K</span>]&gt; }
+    : <span class="tp">T</span>;</code></pre>
+            <p>
+              <strong>How it works (line by line):</strong>
+            </p>
+            <ol style="padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+              <li><code>T extends Function ? T</code> — pass functions through unchanged (don't try to make function properties readonly)</li>
+              <li><code>T extends object ? { readonly [K in keyof T]: DeepReadonly&lt;T[K]&gt; }</code> — if it's an object, map every property to readonly and <strong>recurse</strong> on the value type</li>
+              <li><code>: T</code> — primitives (<code>string</code>, <code>number</code>, <code>boolean</code>, etc.) pass through unchanged</li>
+            </ol>
+            <p>
+              <strong>Why the Function check matters:</strong> Without it, methods become <code>{ readonly bind: DeepReadonly&lt;...&gt; }</code> which breaks them. Functions are objects in JS, so the <code>extends object</code> check catches them too.
+            </p>
+<pre><code><span class="cm">// Result for FrozenConfig:</span>
+{
+  <span class="kw">readonly</span> <span class="tp">db</span>: {
+    <span class="kw">readonly</span> <span class="tp">host</span>: <span class="tp">string</span>;
+    <span class="kw">readonly</span> <span class="tp">port</span>: <span class="tp">number</span>;
+    <span class="kw">readonly</span> <span class="tp">credentials</span>: {
+      <span class="kw">readonly</span> <span class="tp">user</span>: <span class="tp">string</span>;
+      <span class="kw">readonly</span> <span class="tp">pass</span>: <span class="tp">string</span>;
+    };
+  };
+  <span class="kw">readonly</span> <span class="tp">debug</span>: <span class="tp">boolean</span>;
+}</code></pre>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Recursive conditional types follow a pattern: <strong>base case</strong> (primitive) → <strong>recursive case</strong> (object) → <strong>special case</strong> (Function/Array). Always handle edge cases that are technically objects but shouldn't be recursed into.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 10 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 10 — Type-Safe Event Emitter</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Build a type-safe event emitter using <strong>generics and discriminated unions</strong>. The API must ensure:
+        </p>
+        <ul style="margin: var(--space-md) 0; padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+          <li><code>on(event, handler)</code> — handler receives the correct payload type for that event</li>
+          <li><code>emit(event, payload)</code> — payload must match the event's expected type</li>
+          <li>Wrong event name = compile error</li>
+          <li>Wrong payload shape = compile error</li>
+        </ul>
+<pre><code><span class="cm">// The event map that drives everything:</span>
+<span class="kw">interface</span> <span class="tp">EventMap</span> {
+  <span class="tp">login</span>: { <span class="tp">userId</span>: <span class="tp">string</span>; <span class="tp">timestamp</span>: <span class="tp">number</span> };
+  <span class="tp">logout</span>: { <span class="tp">userId</span>: <span class="tp">string</span> };
+  <span class="tp">error</span>: { <span class="tp">message</span>: <span class="tp">string</span>; <span class="tp">code</span>: <span class="tp">number</span> };
+}
+
+<span class="cm">// Implement the Emitter class:</span>
+<span class="kw">class</span> <span class="tp">Emitter</span>&lt;<span class="tp">T</span>&gt; { <span class="cm">/* ??? */</span> }
+
+<span class="cm">// Usage must be fully type-safe:</span>
+<span class="kw">const</span> emitter = <span class="kw">new</span> <span class="tp">Emitter</span>&lt;<span class="tp">EventMap</span>&gt;();
+emitter.<span class="fn">on</span>(<span class="st">"login"</span>, (payload) =&gt; {
+  console.log(payload.userId); <span class="cm">// ✅ typed as string</span>
+});
+emitter.<span class="fn">emit</span>(<span class="st">"error"</span>, { <span class="tp">message</span>: <span class="st">"fail"</span>, <span class="tp">code</span>: <span class="nm">500</span> }); <span class="cm">// ✅</span>
+emitter.<span class="fn">emit</span>(<span class="st">"login"</span>, { <span class="tp">message</span>: <span class="st">"fail"</span> }); <span class="cm">// ❌ wrong payload</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="kw">type</span> <span class="tp">Handler</span>&lt;<span class="tp">T</span>&gt; = (payload: <span class="tp">T</span>) =&gt; <span class="tp">void</span>;
+
+<span class="kw">class</span> <span class="tp">Emitter</span>&lt;<span class="tp">TEventMap</span> <span class="kw">extends</span> <span class="tp">Record</span>&lt;<span class="tp">string</span>, <span class="tp">unknown</span>&gt;&gt; {
+  <span class="kw">private</span> listeners = <span class="kw">new</span> <span class="tp">Map</span>&lt;
+    <span class="kw">keyof</span> <span class="tp">TEventMap</span>,
+    <span class="tp">Set</span>&lt;<span class="tp">Handler</span>&lt;<span class="tp">unknown</span>&gt;&gt;
+  &gt;();
+
+  <span class="fn">on</span>&lt;<span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">TEventMap</span>&gt;(
+    event: <span class="tp">K</span>,
+    handler: <span class="tp">Handler</span>&lt;<span class="tp">TEventMap</span>[<span class="tp">K</span>]&gt;
+  ): <span class="tp">void</span> {
+    <span class="kw">if</span> (!<span class="kw">this</span>.listeners.has(event)) {
+      <span class="kw">this</span>.listeners.set(event, <span class="kw">new</span> <span class="tp">Set</span>());
+    }
+    <span class="kw">this</span>.listeners.get(event)!.add(
+      handler <span class="kw">as</span> <span class="tp">Handler</span>&lt;<span class="tp">unknown</span>&gt;
+    );
+  }
+
+  <span class="fn">emit</span>&lt;<span class="tp">K</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">TEventMap</span>&gt;(
+    event: <span class="tp">K</span>,
+    payload: <span class="tp">TEventMap</span>[<span class="tp">K</span>]
+  ): <span class="tp">void</span> {
+    <span class="kw">this</span>.listeners.get(event)?.forEach(
+      (handler) =&gt; handler(payload)
+    );
+  }
+}</code></pre>
+            <p>
+              <strong>How the type safety works:</strong>
+            </p>
+            <ol style="padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+              <li><code>TEventMap extends Record&lt;string, unknown&gt;</code> constrains the map to string-keyed objects</li>
+              <li><code>K extends keyof TEventMap</code> ensures only valid event names</li>
+              <li><code>TEventMap[K]</code> in the handler/emit signature ensures the payload type matches the event</li>
+              <li>When you call <code>on("login", handler)</code>, TypeScript infers <code>K = "login"</code> and resolves <code>TEventMap["login"]</code> to <code>{ userId: string; timestamp: number }</code></li>
+            </ol>
+            <p>
+              The runtime <code>Handler&lt;unknown&gt;</code> cast in <code>on</code> is necessary because <code>Map</code> stores heterogeneous handlers — each event has a different payload type. This is a rare case where a type assertion at the storage boundary is acceptable because the type safety is enforced at the API boundary.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              The pattern <code>method&lt;K extends keyof Map&gt;(key: K, value: Map[K])</code> is the <strong>keyed generic</strong> pattern — it links the key to the value type. Use it whenever you have a map/registry and want per-key type safety.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 11 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 11 — Branded Type System</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Implement <strong>branded types</strong> (also called opaque types) to prevent mixing up IDs. A <code>UserId</code> should not be assignable to <code>OrderId</code>, even though both are strings at runtime.
+        </p>
+<pre><code><span class="cm">// Define Brand, UserId, and OrderId:</span>
+<span class="kw">type</span> <span class="tp">Brand</span>&lt;<span class="tp">T</span>, <span class="tp">B</span>&gt; = <span class="cm">/* ??? */</span>;
+
+<span class="kw">type</span> <span class="tp">UserId</span> = <span class="cm">/* ??? */</span>;
+<span class="kw">type</span> <span class="tp">OrderId</span> = <span class="cm">/* ??? */</span>;
+
+<span class="cm">// Helper to create branded values:</span>
+<span class="kw">function</span> <span class="fn">asUserId</span>(id: <span class="tp">string</span>): <span class="tp">UserId</span> { <span class="cm">/* ??? */</span> }
+<span class="kw">function</span> <span class="fn">asOrderId</span>(id: <span class="tp">string</span>): <span class="tp">OrderId</span> { <span class="cm">/* ??? */</span> }
+
+<span class="cm">// These must work:</span>
+<span class="kw">const</span> uid: <span class="tp">UserId</span> = <span class="fn">asUserId</span>(<span class="st">"u-123"</span>);
+<span class="kw">const</span> oid: <span class="tp">OrderId</span> = <span class="fn">asOrderId</span>(<span class="st">"o-456"</span>);
+
+<span class="cm">// This must be a type error:</span>
+<span class="kw">function</span> <span class="fn">getUser</span>(id: <span class="tp">UserId</span>): <span class="tp">void</span> {}
+<span class="fn">getUser</span>(oid); <span class="cm">// ❌ should error — OrderId is not UserId</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="cm">// Brand: intersection with a phantom property that has a unique symbol</span>
+<span class="kw">type</span> <span class="tp">Brand</span>&lt;<span class="tp">T</span>, <span class="tp">B</span> <span class="kw">extends</span> <span class="tp">string</span>&gt; = <span class="tp">T</span> &amp; { <span class="kw">readonly</span> <span class="tp">__brand</span>: <span class="tp">B</span> };
+
+<span class="kw">type</span> <span class="tp">UserId</span> = <span class="tp">Brand</span>&lt;<span class="tp">string</span>, <span class="st">"UserId"</span>&gt;;
+<span class="kw">type</span> <span class="tp">OrderId</span> = <span class="tp">Brand</span>&lt;<span class="tp">string</span>, <span class="st">"OrderId"</span>&gt;;
+
+<span class="cm">// Smart constructors — the ONLY way to create branded values</span>
+<span class="kw">function</span> <span class="fn">asUserId</span>(id: <span class="tp">string</span>): <span class="tp">UserId</span> {
+  <span class="kw">return</span> id <span class="kw">as</span> <span class="tp">UserId</span>;
+}
+
+<span class="kw">function</span> <span class="fn">asOrderId</span>(id: <span class="tp">string</span>): <span class="tp">OrderId</span> {
+  <span class="kw">return</span> id <span class="kw">as</span> <span class="tp">OrderId</span>;
+}
+
+<span class="cm">// Usage:</span>
+<span class="kw">const</span> uid: <span class="tp">UserId</span> = <span class="fn">asUserId</span>(<span class="st">"u-123"</span>);
+<span class="kw">const</span> oid: <span class="tp">OrderId</span> = <span class="fn">asOrderId</span>(<span class="st">"o-456"</span>);
+
+<span class="kw">function</span> <span class="fn">getUser</span>(id: <span class="tp">UserId</span>): <span class="tp">void</span> { <span class="cm">/* ... */</span> }
+<span class="fn">getUser</span>(oid); <span class="cm">// ❌ Error: Type '"OrderId"' is not assignable to type '"UserId"'</span></code></pre>
+            <p>
+              <strong>How it works:</strong> <code>Brand&lt;T, B&gt;</code> creates an intersection of the base type <code>T</code> with a phantom object containing <code>__brand: B</code>. At runtime, this phantom property doesn't exist (strings don't have <code>__brand</code>). But at the type level, <code>UserId</code> and <code>OrderId</code> are different because their <code>__brand</code> literal types differ.
+            </p>
+            <p>
+              <strong>The assertion in constructors</strong> (<code>id as UserId</code>) is the <em>controlled escape hatch</em>. You centralize it in one place — the smart constructor — and everywhere else in the codebase gets full type safety. This is a valid use of assertions because the boundary is small and auditable.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Branded types are how production codebases prevent <strong>primitive obsession</strong> — mixing up values that share the same runtime type but represent different domains. Libraries like <code>io-ts</code> and <code>zod</code> use this pattern for runtime + type safety.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 12 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 12 — Type-Safe API Client with Template Literals</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Build a type-safe API client that uses <strong>template literal types</strong> and <strong>conditional types</strong> to map API routes to their method signatures. The routes follow a convention:
+        </p>
+        <ul style="margin: var(--space-md) 0; padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+          <li><code>"GET /users"</code> → returns <code>User[]</code>, no body</li>
+          <li><code>"GET /users/:id"</code> → returns <code>User</code>, requires <code>{ id: string }</code> param</li>
+          <li><code>"POST /users"</code> → returns <code>User</code>, requires <code>CreateUserDTO</code> body</li>
+          <li><code>"DELETE /users/:id"</code> → returns <code>void</code>, requires <code>{ id: string }</code> param</li>
+        </ul>
+<pre><code><span class="kw">interface</span> <span class="tp">Routes</span> {
+  <span class="st">"GET /users"</span>: { <span class="tp">response</span>: <span class="tp">User</span>[] };
+  <span class="st">"GET /users/:id"</span>: { <span class="tp">response</span>: <span class="tp">User</span>; <span class="tp">params</span>: { <span class="tp">id</span>: <span class="tp">string</span> } };
+  <span class="st">"POST /users"</span>: { <span class="tp">response</span>: <span class="tp">User</span>; <span class="tp">body</span>: <span class="tp">CreateUserDTO</span> };
+  <span class="st">"DELETE /users/:id"</span>: { <span class="tp">response</span>: <span class="tp">void</span>; <span class="tp">params</span>: { <span class="tp">id</span>: <span class="tp">string</span> } };
+}
+
+<span class="cm">// Implement a type that extracts the method signature:</span>
+<span class="kw">type</span> <span class="tp">ApiMethod</span>&lt;<span class="tp">R</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">Routes</span>&gt; = <span class="cm">/* ??? */</span>;
+
+<span class="cm">// Implement the client type:</span>
+<span class="kw">type</span> <span class="tp">ApiClient</span> = <span class="cm">/* ??? */</span>;
+
+<span class="cm">// Usage must be fully type-safe:</span>
+<span class="kw">const</span> client: <span class="tp">ApiClient</span> = <span class="cm">/* ... */</span>;
+client.<span class="fn">getUsers</span>();                         <span class="cm">// ✅ returns User[]</span>
+client.<span class="fn">getUsersById</span>({ <span class="tp">id</span>: <span class="st">"1"</span> });          <span class="cm">// ✅ returns User</span>
+client.<span class="fn">postUsers</span>({ <span class="tp">body</span>: { <span class="tp">name</span>: <span class="st">"A"</span> } }); <span class="cm">// ✅ returns User</span></code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="kw">interface</span> <span class="tp">User</span> { <span class="tp">id</span>: <span class="tp">string</span>; <span class="tp">name</span>: <span class="tp">string</span>; }
+<span class="kw">interface</span> <span class="tp">CreateUserDTO</span> { <span class="tp">name</span>: <span class="tp">string</span>; }
+
+<span class="kw">interface</span> <span class="tp">Routes</span> {
+  <span class="st">"GET /users"</span>: { <span class="tp">response</span>: <span class="tp">User</span>[] };
+  <span class="st">"GET /users/:id"</span>: { <span class="tp">response</span>: <span class="tp">User</span>; <span class="tp">params</span>: { <span class="tp">id</span>: <span class="tp">string</span> } };
+  <span class="st">"POST /users"</span>: { <span class="tp">response</span>: <span class="tp">User</span>; <span class="tp">body</span>: <span class="tp">CreateUserDTO</span> };
+  <span class="st">"DELETE /users/:id"</span>: { <span class="tp">response</span>: <span class="tp">void</span>; <span class="tp">params</span>: { <span class="tp">id</span>: <span class="tp">string</span> } };
+}
+
+<span class="cm">// Step 1: Convert route string to camelCase method name</span>
+<span class="kw">type</span> <span class="tp">RouteToMethod</span>&lt;<span class="tp">S</span> <span class="kw">extends</span> <span class="tp">string</span>&gt; =
+  <span class="tp">S</span> <span class="kw">extends</span> <span class="st">""</span> ? <span class="st">""</span> :
+  <span class="tp">S</span> <span class="kw">extends</span> <span class="st">" "</span> ? <span class="st">""</span> :
+  <span class="tp">S</span> <span class="kw">extends</span> <span class="kw">infer</span> <span class="tp">First</span> <span class="kw">extends</span> <span class="tp">string</span> ?
+    <span class="tp">First</span> <span class="kw">extends</span> <span class="st">"/"</span> | <span class="st">":"</span> ? <span class="tp">First</span> :
+    <span class="tp">First</span>
+  : <span class="tp">never</span>;
+
+<span class="cm">// Simpler approach: use a mapped type with manual method names</span>
+<span class="kw">type</span> <span class="tp">ApiMethod</span>&lt;<span class="tp">R</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">Routes</span>&gt; =
+  <span class="st">"params"</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">Routes</span>[<span class="tp">R</span>] ?
+    <span class="st">"body"</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">Routes</span>[<span class="tp">R</span>] ?
+      (args: { <span class="tp">params</span>: <span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"params"</span>]; <span class="tp">body</span>: <span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"body"</span>] }) =&gt; <span class="tp">Promise</span>&lt;<span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"response"</span>]&gt; :
+      (args: { <span class="tp">params</span>: <span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"params"</span>] }) =&gt; <span class="tp">Promise</span>&lt;<span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"response"</span>]&gt; :
+    <span class="st">"body"</span> <span class="kw">extends</span> <span class="kw">keyof</span> <span class="tp">Routes</span>[<span class="tp">R</span>] ?
+      (args: { <span class="tp">body</span>: <span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"body"</span>] }) =&gt; <span class="tp">Promise</span>&lt;<span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"response"</span>]&gt; :
+      () =&gt; <span class="tp">Promise</span>&lt;<span class="tp">Routes</span>[<span class="tp">R</span>][<span class="st">"response"</span>]&gt;;
+
+<span class="cm">// Step 2: Full client using template literals to generate method names</span>
+<span class="kw">type</span> <span class="tp">ParseRoute</span>&lt;<span class="tp">Route</span> <span class="kw">extends</span> <span class="tp">string</span>&gt; =
+  <span class="tp">Route</span> <span class="kw">extends</span> <span class="st">""</span> ? <span class="st">""</span>
+  : <span class="tp">Route</span> <span class="kw">extends</span> <span class="st">"GET /users"</span> ? <span class="st">"getUsers"</span>
+  : <span class="tp">Route</span> <span class="kw">extends</span> <span class="st">"GET /users/:id"</span> ? <span class="st">"getUsersById"</span>
+  : <span class="tp">Route</span> <span class="kw">extends</span> <span class="st">"POST /users"</span> ? <span class="st">"postUsers"</span>
+  : <span class="tp">Route</span> <span class="kw">extends</span> <span class="st">"DELETE /users/:id"</span> ? <span class="st">"deleteUsersById"</span>
+  : <span class="tp">never</span>;
+
+<span class="cm">// Step 3: Build the client object type</span>
+<span class="kw">type</span> <span class="tp">ApiClient</span> = {
+  [<span class="tp">R</span> <span class="kw">in</span> <span class="kw">keyof</span> <span class="tp">Routes</span> <span class="kw">as</span> <span class="tp">ParseRoute</span>&lt;<span class="tp">R</span>&gt;]: <span class="tp">ApiMethod</span>&lt;<span class="tp">R</span>&gt;;
+};
+
+<span class="cm">// The resulting ApiClient type is:</span>
+<span class="cm">// {</span>
+<span class="cm">//   getUsers: () => Promise&lt;User[]&gt;;</span>
+<span class="cm">//   getUsersById: (args: { params: { id: string } }) => Promise&lt;User&gt;;</span>
+<span class="cm">//   postUsers: (args: { body: CreateUserDTO }) => Promise&lt;User&gt;;</span>
+<span class="cm">//   deleteUsersById: (args: { params: { id: string } }) => Promise&lt;void&gt;;</span>
+<span class="cm">// }</span></code></pre>
+            <p>
+              <strong>How it works:</strong>
+            </p>
+            <ol style="padding-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+              <li><strong><code>ApiMethod&lt;R&gt;</code></strong> uses conditional types to check whether the route config has <code>params</code>, <code>body</code>, both, or neither, and builds the correct function signature</li>
+              <li><strong><code>ParseRoute&lt;Route&gt;</code></strong> maps the route string to a camelCase method name using template literal matching</li>
+              <li><strong><code>ApiClient</code></strong> uses <strong>key remapping</strong> (<code>as ParseRoute&lt;R&gt;</code>) to transform the route keys into method names while preserving the type-safe signatures</li>
+            </ol>
+            <p>
+              The key remapping syntax <code>{ [R in keyof Routes as ParseRoute&lt;R&gt;]: ApiMethod&lt;R&gt; }</code> is what makes this work — it iterates over each route, transforms the key name, and generates the correct method type.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              <strong>Key remapping</strong> (<code>as</code> clause in mapped types, TS 4.1+) + <strong>template literal types</strong> let you transform string keys at the type level. This is how frameworks like tRPC and Next.js App Router achieve end-to-end type safety.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--                SCORE SECTION                 -->
+  <!-- ============================================ -->
+  <div class="quiz-section">
+    <h2>🏆 Your Progress</h2>
+    <div id="finalScore" style="text-align: center; padding: var(--space-lg);">
+      <p style="font-size: 1.1rem; font-weight: 600; color: var(--text);">
+        You've attempted <span id="attemptCount" style="color: var(--primary); font-size: 1.3rem;">0</span> of <span style="color: var(--primary); font-size: 1.3rem;">12</span> puzzles.
+      </p>
+      <p id="encouragement" style="margin-top: var(--space-md); font-size: 0.95rem; color: var(--text-secondary);">
+        Click "Reveal Solution" on each puzzle to track your progress.
+      </p>
+    </div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Stuck on a puzzle? Want a deeper explanation? Ask your AI teacher — no question is too advanced.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0010-advanced-ts.html" class="secondary">← Previous: Advanced TypeScript Patterns</a>
+    <span></span>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Reveal toggle — same pattern as Q&A cards
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Solution';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Solution';
+        updateProgress();
+      }
+    }
+
+    // Progress counter
+    let revealedCount = 0;
+
+    function updateProgress() {
+      revealedCount++;
+      const counter = document.getElementById('progressCounter');
+      const attemptEl = document.getElementById('attemptCount');
+      const encouragement = document.getElementById('encouragement');
+
+      counter.textContent = `Puzzles attempted: ${revealedCount} of 12`;
+      attemptEl.textContent = revealedCount;
+
+      if (revealedCount === 12) {
+        encouragement.textContent = "🎉 You've completed all 12 puzzles! Congratulations on finishing the TypeScript course!";
+        encouragement.style.color = 'var(--success)';
+        encouragement.style.fontWeight = '700';
+      } else if (revealedCount >= 8) {
+        encouragement.textContent = "Almost there! You're in the home stretch.";
+      } else if (revealedCount >= 4) {
+        encouragement.textContent = "Great progress! Keep going — the hard puzzles are worth it.";
+      }
+    }
+  </script>
+
+</body>
+</html>

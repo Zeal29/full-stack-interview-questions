@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — TypeScript Fundamentals</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 1 of 11</span>
+    <h1>TypeScript Fundamentals</h1>
+    <p class="subtitle">What TypeScript is, why it exists, how it differs from JavaScript, and its basic type system</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Explain what TypeScript is and why teams adopt it</li>
+      <li>Articulate the key differences between TypeScript and JavaScript</li>
+      <li>Identify and use TypeScript's built-in types</li>
+      <li>Understand why <code>any</code> is dangerous and when to use <code>unknown</code> instead</li>
+    </ul>
+  </div>
+
+  <!-- Section: What is TypeScript -->
+  <div class="content-section">
+    <h2>What is TypeScript?</h2>
+    <p>
+      TypeScript is a <strong>statically typed superset of JavaScript</strong> developed by Microsoft. It compiles to plain JavaScript — browsers and Node.js never run TypeScript directly. The compiler (<code>tsc</code>) checks your types at build time and strips them away, producing clean JS output.
+    </p>
+    <p>
+      The core value proposition: <strong>catch bugs before runtime</strong>. Instead of discovering <code>undefined is not a function</code> in production, TypeScript flags it in your editor as you type.
+    </p>
+    <p>
+      Beyond error checking, TypeScript enables powerful IDE features: autocompletion, inline documentation, safe refactoring (rename a property and every usage updates), and "go to definition" across your entire codebase.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What is TypeScript and why use it?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            TypeScript is a <strong>statically typed superset of JavaScript</strong> that compiles to plain JS. It adds optional type annotations, compile-time error checking, better IDE support (autocompletion, refactoring), and improved code maintainability. Catches bugs <em>before</em> runtime.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            TypeScript = <strong>JavaScript + types</strong>. Think of it as a spell-checker for your code — catches mistakes before you run it.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What is the difference between TypeScript and JavaScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            JavaScript is <strong>dynamically typed</strong> — types are checked at runtime, meaning type errors surface as exceptions in production. TypeScript adds <strong>static typing</strong> — types are checked at compile time, catching errors during development. TS also adds interfaces, enums, generics, access modifiers, and advanced type features.
+          </p>
+          <p>
+            Key point: <strong>TS code compiles to JS</strong> — browsers don't run TypeScript directly. The type information exists only at compile time.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            JS = types at <strong>runtime</strong> (surprises in production). TS = types at <strong>compile time</strong> (caught during development).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What are the basic types in TypeScript?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>TypeScript has the following built-in types:</p>
+          <p>
+            <strong>JavaScript primitives (carried over):</strong> <code>string</code>, <code>number</code>, <code>boolean</code>, <code>null</code>, <code>undefined</code>, <code>bigint</code>, <code>symbol</code>, <code>object</code>
+          </p>
+          <p>
+            <strong>TypeScript additions:</strong> <code>any</code>, <code>unknown</code>, <code>void</code>, <code>never</code>, <code>Array&lt;T&gt;</code>, <code>tuple</code>, <code>enum</code>
+          </p>
+<pre><code><span class="kw">let</span> name: <span class="tp">string</span> = <span class="st">"Ali"</span>;
+<span class="kw">let</span> age: <span class="tp">number</span> = <span class="nm">25</span>;
+<span class="kw">let</span> isActive: <span class="tp">boolean</span> = <span class="kw">true</span>;
+<span class="kw">let</span> items: <span class="tp">string[]</span> = [<span class="st">"a"</span>, <span class="st">"b"</span>];</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Same as JS primitives + <code>any</code>, <code>unknown</code>, <code>void</code>, <code>never</code>, <code>enum</code>, <code>tuple</code> — the TypeScript-specific additions.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What is the <code>any</code> type and why should you avoid it?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>any</code> <strong>disables type checking entirely</strong> — you can assign anything to it and access any property without compiler errors. It defeats the entire purpose of using TypeScript. Every property access on <code>any</code> returns <code>any</code>, creating a cascading "type blackout" that spreads through your codebase.
+          </p>
+          <p>
+            <strong>The safe alternative:</strong> Use <code>unknown</code> when you don't know the type. With <code>unknown</code>, you can assign any value to it, but you <strong>must narrow the type</strong> (via <code>typeof</code>, <code>instanceof</code>, etc.) before using it.
+          </p>
+<pre><code><span class="cm">// ❌ any — no checks at all</span>
+<span class="kw">let</span> x: <span class="tp">any</span> = <span class="st">"hello"</span>;
+x.nonExistentMethod(); <span class="cm">// No error! Crashes at runtime</span>
+
+<span class="cm">// ✅ unknown — must prove the type first</span>
+<span class="kw">let</span> y: <span class="tp">unknown</span> = <span class="st">"hello"</span>;
+y.toUpperCase(); <span class="cm">// Error! Must narrow first</span>
+<span class="kw">if</span> (<span class="kw">typeof</span> y === <span class="st">"string"</span>) y.toUpperCase(); <span class="cm">// OK</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>any</code> = <strong>"turn off TypeScript"</strong>. <code>unknown</code> = <strong>"I don't know yet, but I'll check before using"</strong>. Always prefer <code>unknown</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. What does TypeScript produce after compilation?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> A binary executable</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Plain JavaScript</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> WebAssembly</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> TypeScript bytecode</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! TypeScript compiles to plain JavaScript — browsers and Node.js run the JS output.</div>
+      <div class="quiz-feedback incorrect">❌ TypeScript compiles to plain JavaScript. The type information is stripped during compilation.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. What happens when you use <code>any</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> TypeScript adds runtime type checks</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> The value is frozen and immutable</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Type checking is completely disabled for that value</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It converts the value to a generic type</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>any</code> opts out of the type system entirely — no checks, no safety.</div>
+      <div class="quiz-feedback incorrect">❌ <code>any</code> disables type checking entirely. You can do anything with it, and TypeScript won't complain.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. Which type requires you to narrow before use?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> <code>unknown</code></button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> <code>any</code></button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> <code>void</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>never</code></button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>unknown</code> forces type narrowing — you must prove what the type is before using it.</div>
+      <div class="quiz-feedback incorrect">❌ <code>unknown</code> is the type-safe alternative to <code>any</code>. It requires narrowing (typeof, instanceof) before operations.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Have questions about TypeScript fundamentals? Ask your AI teacher — no question is too basic.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <span></span>
+    <a href="0002-defining-types.html">Next: Defining Types →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        const correct = document.querySelectorAll('.quiz-option.correct:not(.incorrect)').length;
+        // Count questions where the selected answer was correct
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>
