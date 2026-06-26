@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 9 — Ecosystem, SSR &amp; React 19</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 9 of 10</span>
+    <h1>Ecosystem, SSR &amp; React 19</h1>
+    <p class="subtitle">Server Components, hydration, the React Compiler, Server Actions, and the React 19 hooks — what modern React looks like</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Explain Server Components vs Client Components and the RSC data model</li>
+      <li>Distinguish the <code>react</code> and <code>react-dom</code> packages and explain hydration</li>
+      <li>Describe the React Compiler's automatic memoization</li>
+      <li>Use Server Actions, <code>useFormStatus</code>, <code>useOptimistic</code>, and <code>use</code></li>
+    </ul>
+  </div>
+
+  <!-- Section: Modern React -->
+  <div class="content-section">
+    <h2>React on the Server and Beyond</h2>
+    <p>
+      The biggest shift since hooks is the move <strong>back to the server</strong>. React Server Components (RSC) run on the server, can be async, and ship <em>zero JavaScript</em> to the client. They pair with <strong>Server Actions</strong> (form handlers that run on the server, no API routes needed) and a refreshed data model. Next.js's App Router is the canonical implementation, but RSC is a React feature, not a Next feature.
+    </p>
+    <p>
+      React 19 also added ergonomics hooks that were previously painful: <code>useFormStatus</code> (form pending state without prop drilling), <code>useOptimistic</code> (instant UI updates that auto-revert on failure), <code>useActionState</code> (form action state machine), and the <code>use</code> hook (read a promise or context during render — the only hook you can call conditionally). And the <strong>React Compiler</strong> aims to make manual <code>useMemo</code>/<code>useCallback</code> a thing of the past.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q35 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What are Server Components (RSC)?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            React Server Components run <strong>on the server and send rendered output (not their source) to the client</strong>. They can be <code>async</code> and fetch data or touch the filesystem directly — and they add <strong>zero JavaScript</strong> to the bundle, because their code never reaches the browser. Client Components opt in with the <code>"use client"</code> directive.
+          </p>
+<pre><code><span class="cm">// Server Component (default in the App Router)</span>
+<span class="kw">async function</span> <span class="tp">ArticleList</span>() {
+  <span class="kw">const</span> articles = <span class="kw">await</span> db.<span class="fn">query</span>(<span class="st">"SELECT * FROM articles"</span>);
+  <span class="kw">return</span> articles.<span class="fn">map</span>(a =&gt; &lt;<span class="tp">Article</span> <span class="tp">key</span>={a.id} {...a} /&gt;);
+}</code></pre>
+          <p>
+            The mental model: Server Components fetch and render static or data-driven UI; Client Components handle interactivity (state, effects, event handlers). You compose them — a Server Component can render a Client Component, but a Client Component can't directly render a Server Component (it can via children passed down).
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Server Components = <strong>zero-JS backend rendering</strong>. <code>async</code> component = fetch data directly. <code>"use client"</code> = opt into client-side rendering (state/effects).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q42 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What is the difference between React and ReactDOM?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <strong><code>react</code></strong> is the <strong>core, platform-agnostic library</strong> — it defines components, hooks, elements, and the reconciliation algorithm. It knows nothing about the DOM. <strong><code>react-dom</code></strong> is the <strong>browser/DOM adapter</strong> — it provides <code>createRoot</code>, <code>hydrateRoot</code>, event handling, and turns React elements into real DOM nodes.
+          </p>
+<pre><code><span class="cm">// react: define UI</span>
+<span class="kw">import</span> { useState } <span class="kw">from</span> <span class="st">"react"</span>;
+
+<span class="cm">// react-dom: render to the browser</span>
+<span class="kw">import</span> { createRoot } <span class="kw">from</span> <span class="st">"react-dom/client"</span>;
+<span class="fn">createRoot</span>(document.<span class="fn">getElementById</span>(<span class="st">"root"</span>)).<span class="fn">render</span>(&lt;<span class="tp">App</span> /&gt;);</code></pre>
+          <p>
+            This split lets the same React core target other platforms: <code>react-native</code> (mobile), <code>react-three-fiber</code> (WebGL), <code>react-terminal</code> (CLI), <code>ink</code> (terminal). Same components and hooks — different "renderer".
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>react</code> = <strong>brain</strong> (logic, hooks, reconciliation). <code>react-dom</code> = <strong>hands</strong> (DOM manipulation). Same brain, different hands for web vs native.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q43 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What is hydration?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Hydration is the process where React <strong>"adopts" server-rendered HTML on the client</strong> — attaching event listeners and reconciling the existing DOM instead of throwing it away and rebuilding. The server sends fully-rendered HTML (fast first paint, SEO-friendly); the client then makes it interactive.
+          </p>
+<pre><code><span class="cm">// Client entry for an SSR app</span>
+<span class="kw">import</span> { hydrateRoot } <span class="kw">from</span> <span class="st">"react-dom/client"</span>;
+<span class="fn">hydrateRoot</span>(document.<span class="fn">getElementById</span>(<span class="st">"root"</span>), &lt;<span class="tp">App</span> /&gt;);</code></pre>
+          <p>
+            If the server HTML and the client's first render disagree (a hydration <strong>mismatch</strong>), React warns in dev and re-renders that subtree from scratch — a perf hit. Common causes: using <code>Date.now()</code> or <code>Math.random()</code> in render, or reading browser-only APIs during SSR. React 18+ supports <strong>selective hydration</strong> — it can hydrate components out of order and prioritize the one the user clicked.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Hydration = <strong>"wake up server HTML with JavaScript."</strong> Server sends static HTML for fast paint + SEO; React attaches interactivity. Mismatches cause warnings and re-renders.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q44 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">4</span><span>What is the React Compiler (React Forget)?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            The React Compiler is a <strong>build-time tool (Babel plugin) that automatically adds memoization</strong>. You write plain, readable code; the compiler analyses it and inserts the equivalent of <code>useMemo</code>/<code>useCallback</code>/<code>React.memo</code> where it would actually help — so you don't have to reason about it manually.
+          </p>
+<pre><code><span class="cm">// You write this (no memo):</span>
+<span class="kw">function</span> <span class="tp">ProductList</span>({ items, query }) {
+  <span class="kw">const</span> filtered = items.<span class="fn">filter</span>(i =&gt; i.<span class="fn">includes</span>(query));
+  <span class="kw">const</span> onSelect = (id) =&gt; <span class="fn">navigate</span>(<span class="st">`/p/</span>${id}<span class="st">`</span>);
+  <span class="kw">return</span> filtered.<span class="fn">map</span>(i =&gt; &lt;<span class="tp">Card</span> <span class="tp">key</span>={i.id} <span class="tp">onSelect</span>={onSelect} /&gt;);
+}
+<span class="cm">// Compiler rewrites filtered &amp; onSelect to be memoized automatically</span></code></pre>
+          <p>
+            The goal: eliminate the entire "should I memoize this?" tax. You write simple code and get the performance of hand-tuned memoization. It enforces the <strong>rules of React</strong> strictly (pure render, no side effects in render) — impure code that happened to work before can break, which is a feature: it surfaces latent bugs.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            React Compiler = <strong>automatic optimization</strong>. Write simple code; the compiler adds memoization. No more manual <code>useMemo</code>/<code>useCallback</code> — but your render must be pure.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q45 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">5</span><span>What are React Server Actions?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Server Actions are <strong>functions that run on the server but are invoked from client components</strong>, typically as form <code>action</code> handlers. Marked with the <code>"use server"</code> directive, they let you mutate server state (write to a DB) directly from a form — no manual <code>fetch</code>, no API route boilerplate.
+          </p>
+<pre><code><span class="cm">// Server Action</span>
+<span class="kw">async function</span> <span class="fn">createUser</span>(formData) {
+  <span class="st">"use server"</span>;
+  <span class="kw">await</span> db.users.<span class="fn">create</span>({ <span class="tp">name</span>: formData.<span class="fn">get</span>(<span class="st">"name"</span>) });
+  <span class="fn">revalidatePath</span>(<span class="st">"/users"</span>);
+}
+
+<span class="cm">// Client form uses it directly</span>
+&lt;<span class="tp">form</span> <span class="tp">action</span>={createUser}&gt;
+  &lt;<span class="tp">input</span> <span class="tp">name</span>=<span class="st">"name"</span> /&gt;
+  &lt;<span class="tp">button</span>&gt;Add&lt;/<span class="tp">button</span>&gt;
+&lt;/<span class="tp">form</span>&gt;</code></pre>
+          <p>
+            A subtle win: <strong>progressive enhancement</strong>. Because the handler is a real form action, the form works even with JavaScript disabled — the browser POSTs natively. They integrate with <code>useFormStatus</code> and <code>useOptimistic</code> for pending state and optimistic UI (next cards).
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Server Actions = <strong>form actions that run on the server</strong>. No fetch, no API route. <code>"use server"</code> = runs on server. Works without JavaScript (progressive enhancement).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q47 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">6</span><span>What is the difference between controlled and uncontrolled forms (deep)?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Beyond the basic distinction (Lesson 3), in real apps the choice has real consequences:
+          </p>
+          <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+            <li><strong>Controlled</strong> — every keystroke updates React state. You get full control over validation, formatting, conditional UI, and submission. More re-renders and more code, but predictable and powerful.</li>
+            <li><strong>Uncontrolled</strong> — the DOM holds values; you read them via refs at submit time. Less code, fewer re-renders, but no live validation/formatting. Good for simple forms or integrating non-React widgets.</li>
+          </ul>
+<pre><code><span class="cm">// Controlled — live validation is trivial</span>
+&lt;<span class="tp">input</span>
+  <span class="tp">value</span>={email}
+  <span class="tp">onChange</span>={e =&gt; <span class="fn">setEmail</span>(e.target.value)}
+/&gt;
+{email &amp;&amp; !isEmail(email) &amp;&amp; &lt;<span class="tp">span</span>&gt;Invalid&lt;/<span class="tp">span</span>&gt;}
+
+<span class="cm">// Uncontrolled — read at submit</span>
+<span class="kw">const</span> ref = <span class="fn">useRef</span>();
+&lt;<span class="tp">form</span> <span class="tp">onSubmit</span>={() =&gt; <span class="fn">submit</span>(ref.current.value)}&gt;
+  &lt;<span class="tp">input</span> <span class="tp">ref</span>={ref} /&gt;
+&lt;/<span class="tp">form</span>&gt;</code></pre>
+          <p>
+            In practice, libraries like <strong>React Hook Form</strong> bridge both — uncontrolled by default for performance, with controlled-style validation when you need it. For complex forms with interdependent fields and live validation, controlled is the clearer mental model.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Controlled for <strong>complex forms</strong> (validation, formatting, conditional UI). Uncontrolled for <strong>simple forms</strong> or non-React integrations. React Hook Form blends both.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q48 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">7</span><span>What is the <code>useFormStatus</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useFormStatus</code> (React 19) gives a component the <strong>pending state of its parent <code>&lt;form&gt;</code></strong> — without you threading a loading prop through. It must be rendered <em>inside</em> a <code>&lt;form&gt;</code> (typically as a child component, not the form itself).
+          </p>
+<pre><code><span class="kw">function</span> <span class="tp">SubmitButton</span>() {
+  <span class="kw">const</span> { pending } = <span class="fn">useFormStatus</span>();
+  <span class="kw">return</span> (
+    &lt;<span class="tp">button</span> <span class="tp">disabled</span>={pending}&gt;
+      {pending ? <span class="st">"Submitting…"</span> : <span class="st">"Submit"</span>}
+    &lt;/<span class="tp">button</span>&gt;
+  );
+}
+
+<span class="cm">// Usage — no pending prop needed:</span>
+&lt;<span class="tp">form</span> <span class="tp">action</span>={serverAction}&gt;
+  &lt;<span class="tp">SubmitButton</span> /&gt;
+&lt;/<span class="tp">form</span>&gt;</code></pre>
+          <p>
+            It exposes <code>pending</code>, <code>data</code>, <code>method</code>, and <code>action</code> — enough to build a fully-featured submit button without lifting the form's state. The catch: it reads the <em>parent</em> form, so the component calling it must be a descendant of <code>&lt;form&gt;</code>, not the form itself.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useFormStatus</code> = <strong>"is my parent form submitting?"</strong> Must be a child of <code>&lt;form&gt;</code>. No need to pass loading state as props.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q49 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">8</span><span>What is the <code>useOptimistic</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useOptimistic</code> (React 19) shows an <strong>optimistic UI update while an async operation is in flight</strong>, and <strong>reverts automatically</strong> if the operation fails or the real value arrives. It dramatically improves perceived performance — the UI reacts instantly rather than waiting for the server.
+          </p>
+<pre><code><span class="kw">const</span> [optimisticName, addOptimistic] = <span class="fn">useOptimistic</span>(
+  name,
+  (<span class="tp">state</span>, <span class="tp">newName</span>) =&gt; <span class="tp">newName</span> <span class="cm">// reducer: how to apply the update</span>
+);
+
+<span class="kw">async function</span> <span class="fn">updateName</span>(formData) {
+  <span class="kw">const</span> newName = formData.<span class="fn">get</span>(<span class="st">"name"</span>);
+  <span class="fn">addOptimistic</span>(newName);   <span class="cm">// instant UI update</span>
+  <span class="kw">await</span> <span class="fn">saveToServer</span>(newName); <span class="cm">// real update</span>
+}</code></pre>
+          <p>
+            During the <code>await</code>, the UI shows <code>optimisticName</code> (the new value). Once the action resolves, React reconciles back to the canonical <code>name</code> from props/state. If it throws, the optimistic value is discarded and the previous value shows. Pairs naturally with Server Actions.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useOptimistic</code> = <strong>"assume it works, revert if it doesn't."</strong> Like a restaurant showing your order before the kitchen confirms. Auto-reverts on failure.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q50 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">9</span><span>What is the <code>use</code> hook (React 19)?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>use</code> is a React 19 API that <strong>reads a resource during render</strong> — currently a Promise or a Context. It's the <strong>only hook-like API you can call conditionally or in a loop</strong>, because it's designed to read values exactly where you need them.
+          </p>
+<pre><code><span class="kw">function</span> <span class="tp">Profile</span>({ promise }) {
+  <span class="kw">const</span> user = <span class="fn">use</span>(promise);  <span class="cm">// suspends until resolved</span>
+  <span class="kw">return</span> &lt;<span class="tp">h1</span>&gt;Hi {user.name}&lt;/<span class="tp">h1</span>&gt;;
+}
+
+<span class="cm">// With context:</span>
+<span class="kw">if</span> (showTheme) {
+  <span class="kw">const</span> theme = <span class="fn">use</span>(<span class="tp">ThemeContext</span>); <span class="cm">// ✅ allowed in a condition</span>
+}</code></pre>
+          <p>
+            When you <code>use(promise)</code>, the component <strong>suspends</strong> — the nearest <code>&lt;Suspense&gt;</code> boundary shows its fallback until the promise resolves. This is a fundamental shift: data fetching becomes part of the render rather than a side effect in <code>useEffect</code>. There's no dependency array because you're reading a specific resource instance, not synchronizing with one.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>use</code> = <strong>read async values during render</strong>. Only hook callable in conditions/loops. Works with promises (suspends) and context. No deps array — reads the value you hand it.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">1. Which is true of a React Server Component?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> It must include <code>useState</code> to render</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> It ships its full source code to the client</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> It runs on the server, can be async, and adds zero JS to the bundle</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It cannot render Client Components</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! RSCs run server-side, can fetch data with async/await, and never ship their JS to the browser. Client Components opt in with <code>"use client"</code>.</div>
+      <div class="quiz-feedback incorrect">❌ RSCs run on the server, can be async, and ship zero JS. They render the output, not the source. They can render Client Components (but not vice-versa, directly).</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">2. A hydration mismatch warning fires. What most likely caused it?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> The server and client rendered different output for the same component (e.g. <code>Date.now()</code> in render)</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A missing <code>key</code> on a list item</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Using <code>useState</code> instead of <code>useReducer</code></button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Importing <code>react-dom</code> twice</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Mismatches happen when server and client disagree — typically non-deterministic values (time, random, browser-only APIs) used during render.</div>
+      <div class="quiz-feedback incorrect">❌ Hydration mismatches mean the server HTML and client's first render disagree — usually from non-deterministic render output (Date.now, Math.random, window-only APIs).</div>
+    </div>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">3. What makes the <code>use</code> hook different from all other hooks?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> It's the fastest hook</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> It's the only one you can call conditionally or inside loops</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> It returns a promise instead of a value</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It only works in Server Components</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>use</code> can be called in conditions/loops because it reads a specific resource. All other hooks must be called unconditionally at the top level.</div>
+      <div class="quiz-feedback incorrect">❌ <code>use</code> is unique in being callable inside conditions and loops. Every other hook must obey the rules-of-hooks (top-level, unconditional).</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>React 19 features are cutting-edge interview material. If RSC or the <code>use</code> hook feels abstract, ask your AI teacher for a concrete data-fetching example.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0008-performance-concurrent.html" class="secondary">← Previous: Performance &amp; Concurrent React</a>
+    <a href="0010-final-puzzles.html">Next: Final Exam →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

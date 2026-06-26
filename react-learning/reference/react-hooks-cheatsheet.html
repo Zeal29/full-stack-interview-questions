@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Hooks Cheatsheet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .ref-header {
+      text-align: center;
+      padding: var(--space-2xl) 0 var(--space-xl);
+      border-bottom: 2px solid var(--border);
+      margin-bottom: var(--space-2xl);
+    }
+    .ref-header .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 100px;
+      margin-bottom: var(--space-md);
+    }
+    .ref-header h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: var(--space-sm);
+      line-height: 1.2;
+    }
+    .ref-header .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .hook-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .hook-card h2 {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      color: var(--primary-dark);
+      margin-bottom: var(--space-sm);
+      border: none;
+      padding: 0;
+    }
+    .hook-card h2 .since {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-left: var(--space-sm);
+      vertical-align: middle;
+    }
+    .hook-sig {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--code-text);
+      background: var(--code-bg);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-sm);
+      margin: var(--space-sm) 0;
+      overflow-x: auto;
+    }
+    .hook-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+    .hook-block h4 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--primary);
+      margin-bottom: var(--space-xs);
+      font-weight: 700;
+    }
+    .hook-block p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin: 0;
+      color: var(--text);
+    }
+    .hook-block.pitfall h4 { color: var(--danger); }
+    .section-label {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: var(--space-2xl) 0 var(--space-md);
+      padding-bottom: var(--space-xs);
+      border-bottom: 2px solid var(--primary);
+    }
+    .section-label:first-of-type { margin-top: 0; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background var(--transition-fast);
+    }
+    .back-link:hover { background: var(--primary-dark); }
+
+    @media (max-width: 640px) {
+      .hook-grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      .back-link { display: none; }
+      .hook-card { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ref-header">
+    <div class="badge">Cheatsheet</div>
+    <h1>React Hooks Cheatsheet</h1>
+    <p class="subtitle">Every React hook — signature, what it does, when to use it, and the common pitfall. Print-friendly.</p>
+  </header>
+
+  <!-- ════════════ CORE STATE & EFFECT ════════════ -->
+  <h3 class="section-label">Core: State &amp; Effects</h3>
+
+  <div class="hook-card">
+    <h2>useState <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">const [value, setValue] = useState(initialValue | () =&gt; initialValue)</div>
+    <p>Adds local state to a function component. Returns the current value and a setter. The initial value is used only on the first render; pass a function for lazy/expensive initialization.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>For any local, component-owned data that should trigger a re-render when it changes.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Stale updates — use the functional form <code>setX(prev =&gt; ...)</code> when the new value depends on the previous.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useEffect <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">useEffect(() =&gt; { ... ; return cleanup }, [deps])</div>
+    <p>Runs side effects after render — data fetching, subscriptions, DOM manipulation, timers. The optional cleanup runs before the next effect and on unmount.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Syncing the component with an external system (network, DOM, subscription). Not for deriving data from props/state.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Missing dependency → stale closure / infinite loop. Setting state without a dep array = infinite re-render.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useLayoutEffect <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">useLayoutEffect(() =&gt; { ... ; return cleanup }, [deps])</div>
+    <p>Identical to <code>useEffect</code> but fires <strong>synchronously after DOM mutations, before the browser paints</strong>. Use to read layout and mutate state to avoid visible flicker.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Only when you must measure/mutate DOM before paint (tooltips, scroll positions, measurement-driven layout).</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Overuse — it blocks paint. Use <code>useEffect</code> by default; warns under SSR (use <code>useIsomorphicLayoutEffect</code>).</p></div>
+    </div>
+  </div>
+
+  <!-- ════════════ REFS ════════════ -->
+  <h3 class="section-label">Refs &amp; Identity</h3>
+
+  <div class="hook-card">
+    <h2>useRef <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">const ref = useRef(initialValue) &nbsp;// ref.current</div>
+    <p>Returns a mutable object whose <code>.current</code> persists across renders <strong>without triggering re-renders</strong>. Two uses: (1) access DOM nodes via the <code>ref</code> prop, (2) store any mutable value that shouldn't drive the UI.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>DOM access (focus, scroll, measure), timers, "previous value" tracking, mutable flags.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Treating it like state — mutating <code>.current</code> doesn't re-render. If the UI must update, use <code>useState</code>.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useImperativeHandle <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">useImperativeHandle(ref, () =&gt; ({ method() {} }), [deps])</div>
+    <p>Customizes what a parent sees through a forwarded <code>ref</code>. Instead of exposing the raw DOM node, you expose only the methods you choose.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Reusable components that need a small imperative surface (focus, scroll, play). Pair with <code>forwardRef</code>.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Exposing too much — it's an escape hatch from the declarative model. Expose the smallest API that works.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useId <span class="since">since 18</span></h2>
+    <div class="hook-sig">const id = useId()</div>
+    <p>Generates a unique, stable id that's <strong>consistent between server and client</strong>. Designed for accessibility attributes (label/input pairs).</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Linking <code>&lt;label htmlFor&gt;</code> to <code>&lt;input id&gt;</code>; aria attributes that need a stable id across SSR.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Using it for list keys or database ids — it's not for that. Keys come from your data; DB ids from the server.</p></div>
+    </div>
+  </div>
+
+  <!-- ════════════ PERFORMANCE ════════════ -->
+  <h3 class="section-label">Performance &amp; Memoization</h3>
+
+  <div class="hook-card">
+    <h2>useMemo <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">const memoized = useMemo(() =&gt; compute(a, b), [a, b])</div>
+    <p>Caches the result of a calculation, recomputing only when dependencies change. The value-level memoization hook.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Genuinely expensive computations, or when the memoized value is a dep of <code>useEffect</code>/memoized child.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Over-memoizing trivial work — the memo overhead exceeds the saved computation. Measure first.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useCallback <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">const memoizedFn = useCallback(() =&gt; { ... }, [deps])</div>
+    <p>Caches a <em>function reference</em> (the function counterpart to <code>useMemo</code>) so it keeps identity across renders unless deps change.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Only when the function's identity is consumed — as a <code>useEffect</code> dep or a prop to a <code>React.memo</code> child.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Wrapping every function "for perf" — it adds overhead with no benefit unless something compares the reference.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useDebugValue <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">useDebugValue(value, formatFn?)</div>
+    <p>Displays a label for a custom hook in React DevTools. Optional formatter avoids running expensive formatting unless DevTools is open.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Inside custom hooks to make their internal state readable in DevTools.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Calling it in components (not hooks) — it's a hook, follows the rules of hooks.</p></div>
+    </div>
+  </div>
+
+  <!-- ════════════ STATE MANAGEMENT ════════════ -->
+  <h3 class="section-label">State Management &amp; Context</h3>
+
+  <div class="hook-card">
+    <h2>useReducer <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">const [state, dispatch] = useReducer(reducer, initialArg, init?)</div>
+    <p>Alternative to <code>useState</code> for complex state: you dispatch actions, a pure reducer computes the next state. "Redux-lite."</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Multiple interdependent fields, complex transitions, state machines, or testable state logic.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Reaching for it for single-value state — that's <code>useState</code> territory. Keep reducers pure.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useContext <span class="since">since 16.8</span></h2>
+    <div class="hook-sig">const value = useContext(SomeContext)</div>
+    <p>Reads the nearest Provider's value for a context. The component re-renders whenever that value changes (by reference).</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>App-wide, low-frequency data (theme, auth, locale) to avoid prop drilling.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>High-frequency updates cause all consumers to re-render. Split contexts or use an external store.</p></div>
+    </div>
+  </div>
+
+  <!-- ════════════ CONCURRENT ════════════ -->
+  <h3 class="section-label">Concurrent React</h3>
+
+  <div class="hook-card">
+    <h2>useTransition <span class="since">since 18</span></h2>
+    <div class="hook-sig">const [isPending, startTransition] = useTransition()</div>
+    <p>Marks a state update as a non-urgent <em>transition</em>. Urgent updates (typing) stay responsive; the transition can be interrupted. <code>isPending</code> flags in-progress work.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Expensive updates triggered by user input (filtering large lists, tab switches) where you want a loading flag.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Wrapping urgent updates (the input value itself) — those must stay urgent or typing feels laggy.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useDeferredValue <span class="since">since 18</span></h2>
+    <div class="hook-sig">const deferred = useDeferredValue(value)</div>
+    <p>Returns a deferred copy of a value that lags behind urgent updates, refreshing when the browser is idle. The value-level counterpart to <code>useTransition</code>.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>When the value comes from props/a library and you can't wrap the setter — feed the deferred value to expensive work.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Using it everywhere — it only helps when downstream work is genuinely expensive and the value changes often.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useSyncExternalStore <span class="since">since 18</span></h2>
+    <div class="hook-sig">const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot?)</div>
+    <p>The concurrent-safe way to subscribe to a non-React store (Redux, Zustand, browser APIs). Prevents "tearing" — inconsistent snapshots across a render.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Authoring a store adapter or bridging browser APIs (online status, media queries) to React under concurrent rendering.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Returning a new object from <code>getSnapshot</code> each call — React compares by reference and will loop. Return a cached snapshot.</p></div>
+    </div>
+  </div>
+
+  <!-- ════════════ REACT 19 ════════════ -->
+  <h3 class="section-label">React 19</h3>
+
+  <div class="hook-card">
+    <h2>use <span class="since">since 19</span></h2>
+    <div class="hook-sig">const value = use(promise | context)</div>
+    <p>Reads a Promise or Context during render. Suspends the component (shows nearest Suspense fallback) until a promise resolves. <strong>The only hook you can call conditionally or in a loop.</strong></p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Reading a promise passed from a Server Component or cache; reading context conditionally. The React 19 data model.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Creating a new promise each render — pass a stable promise (from props/memo) or you'll suspend forever.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useFormStatus <span class="since">since 19</span></h2>
+    <div class="hook-sig">const { pending, data, method, action } = useFormStatus()</div>
+    <p>Gives a component the pending state of its parent <code>&lt;form&gt;</code>'s action — without prop-drilling a loading flag. Must be a descendant of a form.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Building submit buttons that show a pending state for Server Actions / form actions.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Calling it in the form itself — it reads the <em>parent</em> form, so it must be a child component.</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useOptimistic <span class="since">since 19</span></h2>
+    <div class="hook-sig">const [optimisticState, addOptimistic] = useOptimistic(state, reducer?)</div>
+    <p>Shows an optimistic update instantly during an async operation and auto-reverts on failure or reconciles to the real value on success.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Actions with perceived latency — likes, comments, toggles — where instant feedback improves UX.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Forgetting it reverts on error — design your UI to handle the revert (don't assume success).</p></div>
+    </div>
+  </div>
+
+  <div class="hook-card">
+    <h2>useActionState <span class="since">since 19</span></h2>
+    <div class="hook-sig">const [state, formAction, isPending] = useActionState(actionFn, initialState)</div>
+    <p>Manages state for a form action: holds the result of the action, exposes a pending flag, and returns a <code>formAction</code> you wire to <code>&lt;form action&gt;</code>.</p>
+    <div class="hook-grid">
+      <div class="hook-block"><h4>When to use</h4><p>Forms with Server Actions that return a result (validation errors, success message) you want to display.</p></div>
+      <div class="hook-block pitfall"><h4>Common pitfall</h4><p>Mixing it up with <code>useFormStatus</code> — this manages the action's <em>result</em>; that manages the form's <em>pending</em> state.</p></div>
+    </div>
+  </div>
+
+  <footer style="text-align: center; padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 2px solid var(--border);">
+    <a href="../lessons/0001-fundamentals.html" class="back-link">← Back to Lessons</a>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7 — Custom Hooks &amp; Advanced APIs</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 7 of 10</span>
+    <h1>Custom Hooks &amp; Advanced APIs</h1>
+    <p class="subtitle">useId, custom hooks, StrictMode, forwardRef, and useImperativeHandle — extracting logic and bridging the imperative world</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Write idiomatic custom hooks (the modern way to share logic)</li>
+      <li>Generate stable, SSR-safe ids with <code>useId</code></li>
+      <li>Explain what <code>StrictMode</code> does and why it double-invokes in dev</li>
+      <li>Forward refs into child components and expose a controlled imperative API</li>
+    </ul>
+  </div>
+
+  <!-- Section: Extracting and bridging -->
+  <div class="content-section">
+    <h2>Logic Reuse and the Imperative Bridge</h2>
+    <p>
+      Custom hooks are the modern answer to "how do I share stateful logic between components?" — a function starting with <code>use</code> that can call other hooks. They replaced HOCs and render props for logic reuse. A few rules: the name must start with <code>use</code> (so the linter's rules-of-hooks apply), and they share <em>behaviour</em>, not state — each call site gets its own state.
+    </p>
+    <p>
+      The other APIs here bridge React's declarative world and the imperative one: <code>useId</code> generates stable ids for label/input pairs across server and client; <code>forwardRef</code> lets a parent pass a ref through to a child's DOM node; <code>useImperativeHandle</code> customises what that ref exposes. And <code>StrictMode</code> is the dev-only safety net that double-invokes renders and effects to surface bugs.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q28 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What is the <code>useId</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useId</code> generates a <strong>unique, stable id that's consistent between server and client renders</strong>. It's meant for accessibility attributes that link elements — most commonly <code>&lt;label htmlFor&gt;</code> paired with <code>&lt;input id&gt;</code>.
+          </p>
+<pre><code><span class="kw">function</span> <span class="tp">Field</span>() {
+  <span class="kw">const</span> id = <span class="fn">useId</span>();
+  <span class="kw">return</span> (
+    &lt;&gt;
+      &lt;<span class="tp">label</span> <span class="tp">htmlFor</span>={id}&gt;Name&lt;/<span class="tp">label</span>&gt;
+      &lt;<span class="tp">input</span> <span class="tp">id</span>={id} /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+          <p>
+            <strong>Don't use it for:</strong> list keys (use stable ids from your data), database keys, or anything that needs to be globally sequential. The ids it produces are stable but not sequential — they look like <code>:r0:</code>, <code>:r1:</code>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useId</code> = <strong>SSR-safe unique ids for accessibility</strong> (label/input pairs). Not for list keys or DB ids.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q29 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What are custom hooks?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Custom hooks are <strong>functions that extract reusable, stateful logic out of components</strong>. By convention the name must start with <code>use</code> — that's how the linter applies the rules of hooks. They can call other hooks, return values (state, functions, arrays — anything), and each call site maintains its own independent state.
+          </p>
+<pre><code><span class="kw">function</span> <span class="fn">useLocalStorage</span>(key, initialValue) {
+  <span class="kw">const</span> [value, setValue] = <span class="fn">useState</span>(() =&gt; {
+    <span class="kw">const</span> stored = localStorage.<span class="fn">getItem</span>(key);
+    <span class="kw">return</span> stored ? <span class="tp">JSON</span>.<span class="fn">parse</span>(stored) : initialValue;
+  });
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    localStorage.<span class="fn">setItem</span>(key, <span class="tp">JSON</span>.<span class="fn">stringify</span>(value));
+  }, [key, value]);
+
+  <span class="kw">return</span> [value, setValue];
+}</code></pre>
+          <p>
+            They replaced HOCs and render props for logic reuse: no wrapper components, no nesting, just a function. The golden rule: <strong>share behaviour, not state</strong> — two components calling <code>useLocalStorage("theme")</code> each get their own copy.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Custom hooks = <strong>reusable stateful logic</strong>. Must start with <code>use</code>. Share behaviour, not state — each call site is independent. They replaced HOCs/render props.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q30 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What is <code>StrictMode</code> in React?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>&lt;React.StrictMode&gt;</code> is a <strong>development-only wrapper that surfaces potential problems</strong>. It detects unsafe legacy lifecycle methods, warns about deprecated APIs, and — importantly — <strong>double-invokes render and effects in dev</strong> to flush out bugs caused by assuming a function runs once.
+          </p>
+<pre><code>&lt;<span class="tp">React.StrictMode</span>&gt;
+  &lt;<span class="tp">App</span> /&gt;
+&lt;/<span class="tp">React.StrictMode</span>&gt;</code></pre>
+          <p>
+            The double-invocation is the part that surprises people: in dev, your component body, <code>useState</code> initializers, and effects each run twice. This is <strong>not a bug</strong> — it deliberately exposes code that relies on side effects happening exactly once (which breaks under React's concurrent renderer, where work can be discarded and re-run). It has <strong>zero production effect</strong>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            StrictMode = <strong>dev safety net</strong>. Double-invokes render/effects in dev to catch impure code. No impact on production. If something runs twice and breaks, your code wasn't pure.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q39 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">4</span><span>What is <code>forwardRef</code>?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>forwardRef</code> lets a <strong>parent pass a ref through to a child component's DOM node</strong>. By default, <code>ref</code> is a special prop that React handles — it does <em>not</em> show up in the child's <code>props</code>. <code>forwardRef</code> opts in: it gives the child a second argument <code>ref</code> that you can attach to a DOM element.
+          </p>
+<pre><code><span class="kw">const</span> <span class="tp">Input</span> = <span class="tp">React</span>.<span class="fn">forwardRef</span>((props, ref) =&gt; (
+  &lt;<span class="tp">input</span> <span class="tp">ref</span>={ref} {...props} /&gt;
+));
+
+<span class="cm">// Parent can now grab the input's DOM node:</span>
+&lt;<span class="tp">Input</span> <span class="tp">ref</span>={inputRef} /&gt;
+inputRef.current.<span class="fn">focus</span>();</code></pre>
+          <p>
+            (In React 19, <code>ref</code> is a regular prop for function components and <code>forwardRef</code> is being soft-deprecated — but you'll see it everywhere in existing code and libraries.) Use it for inputs you want to focus, scroll containers you want to measure, and when building design-system primitives.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>forwardRef</code> = <strong>"pass the ref through."</strong> Without it, <code>ref</code> is consumed by React and never reaches the child. Used for input focus, scroll, and imperative handles.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q40 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">5</span><span>What is <code>useImperativeHandle</code>?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useImperativeHandle</code> <strong>customizes the instance value exposed to the parent via <code>ref</code></strong>. By default, forwarding a ref gives the parent the raw DOM node. With <code>useImperativeHandle</code>, you expose only specific methods — a controlled, encapsulated imperative API.
+          </p>
+<pre><code><span class="kw">const</span> <span class="tp">Input</span> = <span class="tp">React</span>.<span class="fn">forwardRef</span>((props, ref) =&gt; {
+  <span class="kw">const</span> inputRef = <span class="fn">useRef</span>();
+
+  <span class="fn">useImperativeHandle</span>(ref, () =&gt; ({
+    <span class="fn">focus</span>: () =&gt; inputRef.current.<span class="fn">focus</span>(),
+    <span class="fn">clear</span>: () =&gt; { inputRef.current.value = <span class="st">""</span>; },
+  }));
+
+  <span class="kw">return</span> &lt;<span class="tp">input</span> <span class="tp">ref</span>={inputRef} /&gt;;
+});
+
+<span class="cm">// Parent calls ref.current.focus() — only what you exposed, not the DOM node</span></code></pre>
+          <p>
+            Use it sparingly — it's an escape hatch from React's declarative model. The right use case is reusable components that need a small, well-defined imperative surface (focus, scroll, play/pause a video). Avoid exposing the entire DOM node; expose the smallest API that does the job.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useImperativeHandle</code> = <strong>"here's what I'll let the parent do."</strong> Encapsulates the ref — expose only specific methods, not the whole DOM node.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. Why must a custom hook's name start with <code>use</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> It's a style preference — no functional effect</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> It lets the rules-of-hooks linter enforce that hooks are called correctly inside it</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> It's required for the hook to compile</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It activates React's automatic memoization</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! The <code>use</code> prefix is how the eslint-plugin-react-hooks linter knows to apply the rules of hooks. Skip it and violations go uncaught.</div>
+      <div class="quiz-feedback incorrect">❌ The <code>use</code> prefix tells the rules-of-hooks linter to enforce correct usage inside the function. It's a real tooling contract, not a style choice.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="d">
+      <p class="q-text">2. Two components both call <code>useLocalStorage("theme", "light")</code>. How many separate states exist?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> One — they share the same state</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> None — localStorage isn't reactive</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> It throws because the key collides</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Two — each call site has its own independent state</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Custom hooks share behaviour, not state. Each call site is a fresh <code>useState</code> — independent React state, even if they read/write the same localStorage key.</div>
+      <div class="quiz-feedback incorrect">❌ Custom hooks share behaviour, not state. Each call site runs its own <code>useState</code> — two independent states (which happen to both touch localStorage).</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. In dev with StrictMode, your effect's cleanup seems to run twice. This is…</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Expected — StrictMode double-invokes to expose impure effects; it's dev-only and harmless in prod</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A bug you should fix by disabling StrictMode</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Caused by a missing dependency array</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> A sign your effect is async</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! StrictMode intentionally mounts, unmounts, and remounts in dev to catch missing cleanups. It never ships to production.</div>
+      <div class="quiz-feedback incorrect">❌ StrictMode intentionally double-invokes effects in dev to surface bugs (missing cleanups, side effects that assume one run). It has no production effect.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>forwardRef + useImperativeHandle trips many people up — ask your AI teacher to walk through a focus() example.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0006-component-patterns.html" class="secondary">← Previous: Component Patterns</a>
+    <a href="0008-performance-concurrent.html">Next: Performance &amp; Concurrent React →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

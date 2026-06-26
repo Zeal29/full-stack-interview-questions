@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Patterns Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .ref-header {
+      text-align: center;
+      padding: var(--space-2xl) 0 var(--space-xl);
+      border-bottom: 2px solid var(--border);
+      margin-bottom: var(--space-2xl);
+    }
+    .ref-header .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 100px;
+      margin-bottom: var(--space-md);
+    }
+    .ref-header h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: var(--space-sm);
+      line-height: 1.2;
+    }
+    .ref-header .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .pattern-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-xl);
+      box-shadow: var(--shadow-sm);
+    }
+    .pattern-card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: var(--space-sm);
+      border: none;
+      padding: 0;
+    }
+    .pattern-card h2 .tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 2px var(--space-sm);
+      border-radius: 100px;
+      margin-left: var(--space-sm);
+      vertical-align: middle;
+    }
+    .pattern-card .lede {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-lg);
+    }
+
+    .pattern-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-lg);
+      margin-top: var(--space-lg);
+    }
+    .pattern-block {
+      background: var(--surface-alt);
+      border-radius: var(--radius-md);
+      padding: var(--space-md);
+    }
+    .pattern-block h4 {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: var(--space-sm);
+    }
+    .pattern-block.use h4 { color: var(--success); }
+    .pattern-block.avoid h4 { color: var(--danger); }
+    .pattern-block p, .pattern-block li {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text);
+      margin: 0;
+    }
+    .pattern-block ul {
+      padding-left: var(--space-md);
+      margin: 0;
+    }
+
+    .pattern-card pre {
+      margin: var(--space-md) 0 0;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background var(--transition-fast);
+    }
+    .back-link:hover { background: var(--primary-dark); }
+
+    @media (max-width: 640px) {
+      .pattern-grid { grid-template-columns: 1fr; }
+    }
+    @media print {
+      .back-link { display: none; }
+      .pattern-card { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ref-header">
+    <div class="badge">Patterns</div>
+    <h1>React Component Patterns</h1>
+    <p class="subtitle">When to reach for each pattern, a code skeleton, and — just as important — when not to.</p>
+  </header>
+
+  <!-- ════════════ 1. Higher-Order Component ════════════ -->
+  <section class="pattern-card">
+    <h2>1. Higher-Order Component (HOC) <span class="tag">cross-cutting</span></h2>
+    <p class="lede">A function that takes a component and returns an enhanced component. The classic pre-hooks way to share cross-cutting logic.</p>
+<pre><code><span class="kw">const</span> <span class="fn">withAuth</span> = (<span class="tp">Component</span>) =&gt; {
+  <span class="kw">return</span> <span class="kw">function</span> <span class="tp">Protected</span>(props) {
+    <span class="kw">const</span> user = <span class="fn">useAuth</span>();
+    <span class="kw">if</span> (!user) <span class="kw">return</span> &lt;<span class="tp">Login</span> /&gt;;
+    <span class="kw">return</span> &lt;<span class="tp">Component</span> {...props} user={user} /&gt;;
+  };
+};
+
+<span class="cm">// Usage</span>
+<span class="kw">const</span> <span class="tp">Dashboard</span> = <span class="fn">withAuth</span>(<span class="tp">RawDashboard</span>);</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>Cross-cutting concerns that wrap the whole component (auth gating, telemetry injection).</li>
+          <li>Interoperating with libraries built on HOCs (older <code>connect()</code> redux).</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>For simple logic sharing — a custom hook is almost always simpler and avoids "wrapper hell."</li>
+          <li>When you need fine-grained prop control — render props or hooks are clearer.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 2. Render Props ════════════ -->
+  <section class="pattern-card">
+    <h2>2. Render Props <span class="tag">data + render separation</span></h2>
+    <p class="lede">A prop whose value is a function returning JSX. The parent owns the data; the consumer decides how to render it.</p>
+<pre><code><span class="kw">function</span> <span class="tp">MouseTracker</span>({ children }) {
+  <span class="kw">const</span> [pos, setPos] = <span class="fn">useState</span>({ <span class="tp">x</span>: <span class="nm">0</span>, <span class="tp">y</span>: <span class="nm">0</span> });
+  <span class="cm">// ...track mouse, update pos</span>
+  <span class="kw">return</span> children(pos);
+}
+
+<span class="cm">// Consumer decides rendering:</span>
+&lt;<span class="tp">MouseTracker</span>&gt;
+  {({ x, y }) =&gt; &lt;<span class="tp">div</span>&gt;Cursor at {x}, {y}&lt;/<span class="tp">div</span>&gt;}
+&lt;/<span class="tp">MouseTracker</span>&gt;</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>When the consumer must fully control the rendered output of shared logic.</li>
+          <li>Working with older libraries (react-router v5, react-motion).</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>New code — a custom hook (<code>useMousePosition()</code>) is simpler and avoids the extra nesting.</li>
+          <li>Pure rendering logic — just compose components.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 3. Custom Hooks ════════════ -->
+  <section class="pattern-card">
+    <h2>3. Custom Hooks <span class="tag">logic reuse (modern default)</span></h2>
+    <p class="lede">A function starting with <code>use</code> that extracts reusable stateful logic. The modern replacement for HOCs and render props.</p>
+<pre><code><span class="kw">function</span> <span class="fn">useFetch</span>(url) {
+  <span class="kw">const</span> [state, setState] = <span class="fn">useState</span>({ <span class="tp">data</span>: <span class="kw">null</span>, <span class="tp">error</span>: <span class="kw">null</span>, <span class="tp">loading</span>: <span class="kw">true</span> });
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">let</span> ignore = <span class="kw">false</span>;
+    <span class="fn">setState</span>(s =&gt; ({ ...s, <span class="tp">loading</span>: <span class="kw">true</span> }));
+    <span class="fn">fetch</span>(url)
+      .<span class="fn">then</span>(r =&gt; r.<span class="fn">json</span>())
+      .<span class="fn">then</span>(data =&gt; { <span class="kw">if</span> (!ignore) <span class="fn">setState</span>({ data, <span class="tp">error</span>: <span class="kw">null</span>, <span class="tp">loading</span>: <span class="kw">false</span> }); })
+      .<span class="fn">catch</span>(error =&gt; { <span class="kw">if</span> (!ignore) <span class="fn">setState</span>(s =&gt; ({ ...s, <span class="tp">error</span>, <span class="tp">loading</span>: <span class="kw">false</span> })); });
+    <span class="kw">return</span> () =&gt; { ignore = <span class="kw">true</span>; };
+  }, [url]);
+
+  <span class="kw">return</span> state;
+}</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>Sharing stateful logic between components — the default choice in modern React.</li>
+          <li>Extracting a non-trivial effect/state sequence out of a component for clarity.</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>For pure, stateless helpers — use a plain function (no <code>use</code> prefix).</li>
+          <li>Returning JSX — that's a component, not a hook.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 4. Compound Components ════════════ -->
+  <section class="pattern-card">
+    <h2>4. Compound Components <span class="tag">composable API</span></h2>
+    <p class="lede">A set of components sharing state implicitly through context, exposing an API that reads like native HTML. Powers design-system primitives.</p>
+<pre><code><span class="kw">const</span> <span class="tp">TabsContext</span> = <span class="fn">createContext</span>();
+
+<span class="kw">function</span> <span class="tp">Tabs</span>({ children, defaultIndex }) {
+  <span class="kw">const</span> [active, setActive] = <span class="fn">useState</span>(defaultIndex ?? <span class="nm">0</span>);
+  <span class="kw">return</span> (
+    &lt;<span class="tp">TabsContext.Provider</span> <span class="tp">value</span>={{ active, setActive }}&gt;
+      {children}
+    &lt;/<span class="tp">TabsContext.Provider</span>&gt;
+  );
+}
+
+<span class="tp">Tabs</span>.<span class="tp">Tab</span> = <span class="kw">function</span> <span class="tp">Tab</span>({ index, children }) {
+  <span class="kw">const</span> { active, setActive } = <span class="fn">useContext</span>(<span class="tp">TabsContext</span>);
+  <span class="kw">return</span> &lt;<span class="tp">button</span> <span class="tp">onClick</span>={() =&gt; <span class="fn">setActive</span>(index)} <span class="tp">aria-selected</span>={active === index}&gt;
+    {children}
+  &lt;/<span class="tp">button</span>&gt;;
+};</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>Building design-system primitives (Tabs, Accordion, Menu, Dialog) where consumers need flexible composition.</li>
+          <li>When sub-components must share implicit state without prop drilling.</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>Simple, fixed-layout components — a single prop-driven component is clearer.</li>
+          <li>When the API surface is tiny — the context boilerplate isn't worth it.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 5. Context + Provider ════════════ -->
+  <section class="pattern-card">
+    <h2>5. Context + Provider Pattern <span class="tag">dependency broadcast</span></h2>
+    <p class="lede">Broadcast a value to a subtree without prop drilling. Pair with a custom hook consumer for a clean API.</p>
+<pre><code><span class="cm">// 1. Create + Provider wrapper</span>
+<span class="kw">const</span> <span class="tp">ThemeContext</span> = <span class="fn">createContext</span>(<span class="kw">null</span>);
+
+<span class="kw">export function</span> <span class="tp">ThemeProvider</span>({ children }) {
+  <span class="kw">const</span> [theme, setTheme] = <span class="fn">useState</span>(<span class="st">"light"</span>);
+  <span class="kw">const</span> value = <span class="fn">useMemo</span>(() =&gt; ({ theme, setTheme }), [theme]);
+  <span class="kw">return</span> &lt;<span class="tp">ThemeContext.Provider</span> <span class="tp">value</span>={value}&gt;{children}&lt;/<span class="tp">ThemeContext.Provider</span>&gt;;
+}
+
+<span class="cm">// 2. Consumer hook (throws if used outside provider)</span>
+<span class="kw">export function</span> <span class="fn">useTheme</span>() {
+  <span class="kw">const</span> ctx = <span class="fn">useContext</span>(<span class="tp">ThemeContext</span>);
+  <span class="kw">if</span> (!ctx) <span class="kw">throw new</span> <span class="tp">Error</span>(<span class="st">"useTheme must be inside ThemeProvider"</span>);
+  <span class="kw">return</span> ctx;
+}</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>App-wide, low-frequency dependencies (theme, auth, locale, feature flags).</li>
+          <li>Providing a service implementation (so tests can swap it).</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>High-frequency updates — every consumer re-renders on value change.</li>
+          <li>As a Redux replacement for large app state — use an external store with slice subscriptions.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 6. forwardRef + useImperativeHandle ════════════ -->
+  <section class="pattern-card">
+    <h2>6. forwardRef + useImperativeHandle <span class="tag">imperative escape hatch</span></h2>
+    <p class="lede">Expose a controlled imperative API (focus, scroll, play) from a child to its parent, while hiding the raw DOM node.</p>
+<pre><code><span class="kw">const</span> <span class="tp">Video</span> = <span class="fn">forwardRef</span>((<span class="kw">function</span> <span class="tp">Video</span>(props, ref) {
+  <span class="kw">const</span> videoRef = <span class="fn">useRef</span>();
+
+  <span class="fn">useImperativeHandle</span>(ref, () =&gt; ({
+    <span class="fn">play</span>:  () =&gt; videoRef.current.<span class="fn">play</span>(),
+    <span class="fn">pause</span>: () =&gt; videoRef.current.<span class="fn">pause</span>(),
+    <span class="fn">seek</span>:  (t) =&gt; { videoRef.current.currentTime = t; },
+  }), []);
+
+  <span class="kw">return</span> &lt;<span class="tp">video</span> <span class="tp">ref</span>={videoRef} {...props} /&gt;;
+}));
+
+<span class="cm">// Parent gets a tiny imperative API, not the whole &lt;video&gt; node</span>
+&lt;<span class="tp">Video</span> <span class="tp">ref</span>={playerRef} /&gt;;
+playerRef.current.<span class="fn">seek</span>(<span class="nm">30</span>);</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>Reusable components that need a small imperative surface (focus, scroll, media control).</li>
+          <li>Bridging React with imperative DOM APIs (canvas, video, third-party widgets).</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>If the parent can express the same thing declaratively via props — prefer that.</li>
+          <li>Exposing the whole DOM node — encapsulate; expose only what's needed.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 7. Error Boundary ════════════ -->
+  <section class="pattern-card">
+    <h2>7. Error Boundary <span class="tag">resilience</span></h2>
+    <p class="lede">Catch render-phase errors in a subtree and show fallback UI. <strong>Must be a class component.</strong> Wrap independent sections so a single crash doesn't blank the page.</p>
+<pre><code><span class="kw">class</span> <span class="tp">ErrorBoundary</span> <span class="kw">extends</span> <span class="tp">React.Component</span> {
+  <span class="tp">state</span> = { <span class="tp">error</span>: <span class="kw">null</span> };
+
+  <span class="kw">static</span> <span class="fn">getDerivedStateFromError</span>(error) {
+    <span class="kw">return</span> { error };
+  }
+
+  <span class="fn">componentDidCatch</span>(error, info) {
+    <span class="fn">logToTelemetry</span>(error, info);
+  }
+
+  <span class="fn">render</span>() {
+    <span class="kw">if</span> (<span class="kw">this</span>.state.error) <span class="kw">return</span> <span class="kw">this</span>.props.<span class="fn">fallback</span>(<span class="kw">this</span>.state.error);
+    <span class="kw">return</span> <span class="kw">this</span>.props.children;
+  }
+}
+
+<span class="cm">// Usage — wrap risky subtrees</span>
+&lt;<span class="tp">ErrorBoundary</span> <span class="tp">fallback</span>={() =&gt; &lt;<span class="tp">Oops</span> /&gt;}&gt;
+  &lt;<span class="tp">RiskyWidget</span> /&gt;
+&lt;/<span class="tp">ErrorBoundary</span>&gt;</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>Anywhere a child crash shouldn't take down the whole app (panels, widgets, routes).</li>
+          <li>Pairing with Suspense — boundary inside Suspense catches errors + suspends.</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>For event-handler or async errors — those need <code>try/catch</code> / promise catches.</li>
+          <li>Don't wrap the entire app in one boundary — isolate failures.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 8. Suspense Boundary ════════════ -->
+  <section class="pattern-card">
+    <h2>8. Suspense Boundary Structure <span class="tag">loading orchestration</span></h2>
+    <p class="lede">Wrap async units (lazy components, <code>use(promise)</code>) in their own Suspense + Error Boundary so they load and fail independently.</p>
+<pre><code><span class="cm">// One boundary per independent async unit</span>
+&lt;<span class="tp">Layout</span>&gt;
+  &lt;<span class="tp">Header</span> /&gt; <span class="cm">// instant — outside any Suspense</span>
+
+  &lt;<span class="tp">ErrorBoundary</span> <span class="tp">fallback</span>={&lt;<span class="tp">Error</span> /&gt;}&gt;
+    &lt;<span class="tp">Suspense</span> <span class="tp">fallback</span>={&lt;<span class="tp">Spinner</span> /&gt;}&gt;
+      &lt;<span class="tp">Panel</span> <span class="tp">dataPromise</span>={p1} /&gt;
+    &lt;/<span class="tp">Suspense</span>&gt;
+  &lt;/<span class="tp">ErrorBoundary</span>&gt;
+
+  &lt;<span class="tp">ErrorBoundary</span> <span class="tp">fallback</span>={&lt;<span class="tp">Error</span> /&gt;}&gt;
+    &lt;<span class="tp">Suspense</span> <span class="tp">fallback</span>={&lt;<span class="tp">Spinner</span> /&gt;}&gt;
+      &lt;<span class="tp">Chart</span> <span class="tp">dataPromise</span>={p2} /&gt;
+    &lt;/<span class="tp">Suspense</span>&gt;
+  &lt;/<span class="tp">ErrorBoundary</span>&gt;
+&lt;/<span class="tp">Layout</span>&gt;</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>Code-splitting large routes/components (<code>React.lazy</code>).</li>
+          <li>The React 19 data model — components reading promises with <code>use</code>.</li>
+          <li>SSR streaming — flush the shell, stream sections as data resolves.</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>One giant Suspense around the whole page — it blocks everything on the slowest child.</li>
+          <li>Without an Error Boundary nearby — a rejected promise will crash the tree.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════ 9. useReducer State Machine ════════════ -->
+  <section class="pattern-card">
+    <h2>9. useReducer State Machine <span class="tag">complex transitions</span></h2>
+    <p class="lede">Model a component's state as explicit states + transitions with a typed action union. Makes complex logic testable and transition-safe.</p>
+<pre><code><span class="kw">type</span> <span class="tp">State</span> =
+  | { <span class="tp">status</span>: <span class="st">"idle"</span> }
+  | { <span class="tp">status</span>: <span class="st">"loading"</span> }
+  | { <span class="tp">status</span>: <span class="st">"success"</span>; <span class="tp">data</span>: <span class="tp">T</span> }
+  | { <span class="tp">status</span>: <span class="st">"error"</span>; <span class="tp">error</span>: <span class="tp">Error</span> };
+
+<span class="kw">function</span> <span class="fn">reducer</span>(state: <span class="tp">State</span>, action: <span class="tp">Action</span>): <span class="tp">State</span> {
+  <span class="kw">switch</span> (action.type) {
+    <span class="kw">case</span> <span class="st">"FETCH"</span>:  <span class="kw">return</span> { <span class="tp">status</span>: <span class="st">"loading"</span> };
+    <span class="kw">case</span> <span class="st">"SUCCESS"</span>: <span class="kw">return</span> { <span class="tp">status</span>: <span class="st">"success"</span>, <span class="tp">data</span>: action.data };
+    <span class="kw">case</span> <span class="st">"ERROR"</span>:  <span class="kw">return</span> { <span class="tp">status</span>: <span class="st">"error"</span>, <span class="tp">error</span>: action.error };
+    <span class="kw">case</span> <span class="st">"RESET"</span>:  <span class="kw">return</span> { <span class="tp">status</span>: <span class="st">"idle"</span> };
+  }
+}
+
+<span class="kw">const</span> [state, dispatch] = <span class="fn">useReducer</span>(reducer, { <span class="tp">status</span>: <span class="st">"idle"</span> });</code></pre>
+    <div class="pattern-grid">
+      <div class="pattern-block use">
+        <h4>✓ When to use</h4>
+        <ul>
+          <li>Multi-step flows (fetch → loading/success/error), forms with validation rules, wizards.</li>
+          <li>When you want transition rules enforced ("can't go from error to success directly").</li>
+          <li>When the logic needs unit tests — reducers are pure.</li>
+        </ul>
+      </div>
+      <div class="pattern-block avoid">
+        <h4>✗ When NOT to use</h4>
+        <ul>
+          <li>Single independent value — <code>useState</code> is simpler.</li>
+          <li>App-wide state with many consumers — an external store (Zustand/Redux) scales better.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer style="text-align: center; padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 2px solid var(--border);">
+    <a href="../lessons/0001-fundamentals.html" class="back-link">← Back to Lessons</a>
+  </footer>
+
+</body>
+</html>

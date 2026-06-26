@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Forms, Lists &amp; Rendering</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 3 of 10</span>
+    <h1>Forms, Lists &amp; Rendering</h1>
+    <p class="subtitle">Controlled vs uncontrolled inputs, list keys, conditional rendering, and fragments — the everyday patterns</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Choose between controlled and uncontrolled inputs and justify the trade-off</li>
+      <li>Explain why list <code>key</code>s matter and why array index is usually wrong</li>
+      <li>Use ternary, <code>&amp;&amp;</code>, and helper functions for conditional rendering</li>
+      <li>Use Fragments to group elements without adding wrapper DOM nodes</li>
+    </ul>
+  </div>
+
+  <!-- Section: Inputs and lists -->
+  <div class="content-section">
+    <h2>Handling Input and Lists</h2>
+    <p>
+      Two questions come up in nearly every React interview: <strong>"where does the form data live?"</strong> and <strong>"why did my list break when I deleted an item?"</strong>. The first is the controlled-vs-uncontrolled choice; the second is almost always a <code>key</code> problem. Both reduce to a single principle: <strong>React needs a stable identity for data so it can match old UI to new UI</strong>.
+    </p>
+    <p>
+      For inputs, "controlled" means React state is the single source of truth — every keystroke flows through state and back into the input's <code>value</code>. For lists, a stable <code>key</code> tells the reconciler "this row is the same row as before, just moved/updated" — without it, React reuses DOM nodes by position and you get the infamous "wrong row edited" bug.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q10 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What is the difference between controlled and uncontrolled components?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <strong>Controlled:</strong> React state drives the input's <code>value</code>, and an <code>onChange</code> updates that state. React is the single source of truth — the input can't change without state changing.
+          </p>
+          <p>
+            <strong>Uncontrolled:</strong> the DOM owns the value; React reads it on demand via a <code>ref</code>. You set a default with <code>defaultValue</code> and pull <code>inputRef.current.value</code> at submit time.
+          </p>
+<pre><code><span class="cm">// Controlled — React state is the source of truth</span>
+&lt;<span class="tp">input</span> <span class="tp">value</span>={name} <span class="tp">onChange</span>={e =&gt; <span class="fn">setName</span>(e.target.value)} /&gt;
+
+<span class="cm">// Uncontrolled — DOM is the source, read via ref</span>
+<span class="kw">const</span> inputRef = <span class="fn">useRef</span>();
+&lt;<span class="tp">input</span> <span class="tp">defaultValue</span>=<span class="st">""</span> <span class="tp">ref</span>={inputRef} /&gt;
+<span class="cm">// read later: inputRef.current.value</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Controlled = <strong>React drives</strong> (state = value). Uncontrolled = <strong>DOM drives</strong> (ref to get value). Prefer controlled for most forms — it gives you validation, formatting, and predictable submission.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q11 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What are keys in React lists, and why does the choice of key matter?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Keys are <strong>stable identities React uses to match list items across renders</strong>. When a list re-renders, the reconciler uses keys to decide whether an existing DOM node can be reused (updated in place) or must be recreated. Use a <strong>unique, stable</strong> id from your data — never the array index.
+          </p>
+<pre><code><span class="cm">// ✅ stable unique id</span>
+items.<span class="fn">map</span>(item =&gt; &lt;<span class="tp">li</span> <span class="tp">key</span>={item.id}&gt;{item.name}&lt;/<span class="tp">li</span>&gt;);
+
+<span class="cm">// ❌ index — breaks on reorder/insert/delete</span>
+items.<span class="fn">map</span>((item, i) =&gt; &lt;<span class="tp">li</span> <span class="tp">key</span>={i}&gt;{item.name}&lt;/<span class="tp">li</span>&gt;);</code></pre>
+          <p>
+            With index keys, deleting the first item makes React think "item at index 0 changed content" rather than "item 0 was removed" — so it updates DOM nodes in place, transferring state (e.g. a checkbox tick, or uncontrolled input text) to the wrong row. The bug is subtle and the fix is always a stable key.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Keys = <strong>name tags for list items</strong>. Use a unique id from the data; never the index. Wrong keys = state leaking between rows, weird re-render bugs, and lost performance.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What is conditional rendering in React?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Conditional rendering means <strong>showing different UI based on a condition</strong>, expressed inline in JSX. Three idioms cover nearly every case:
+          </p>
+<pre><code><span class="cm">// 1. Ternary — either A or B</span>
+{isLoggedIn ? &lt;<span class="tp">Dashboard</span> /&gt; : &lt;<span class="tp">Login</span> /&gt;}
+
+<span class="cm">// 2. &amp;&amp; — show or hide (note: avoid 0/"" leaking in)</span>
+{items.length &gt; <span class="nm">0</span> &amp;&amp; &lt;<span class="tp">ItemList</span> /&gt;}
+
+<span class="cm">// 3. Extract complex logic to a helper / early return</span>
+<span class="kw">function</span> <span class="tp">Greeting</span>({ user }) {
+  <span class="kw">if</span> (!user) <span class="kw">return</span> &lt;<span class="tp">Login</span> /&gt;;
+  <span class="kw">return</span> &lt;<span class="tp">h1</span>&gt;Hi {user.name}&lt;/<span class="tp">h1</span>&gt;;
+}</code></pre>
+          <p>
+            <strong>Gotcha:</strong> <code>{count &amp;&amp; &lt;Foo/&gt;}</code> renders <code>0</code> when count is 0, because <code>0</code> is a falsy but renderable value. Guard with <code>{count &gt; 0 &amp;&amp; ...}</code> or coerce to boolean.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Ternary (<code>? :</code>) = <strong>either A or B</strong>. <code>&amp;&amp;</code> = <strong>show or hide</strong>. Don't put <code>if</code> inside JSX — use it above the <code>return</code> or extract a helper.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q13 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">4</span><span>What is a React Fragment?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            A Fragment (<code>&lt;Fragment&gt;</code> or the shorthand <code>&lt;&gt;</code>) <strong>groups multiple elements without adding an extra DOM node</strong>. JSX requires a single root element per return; a Fragment satisfies that rule without polluting the DOM with a wrapper <code>div</code> that could break CSS (flex/grid) or valid HTML (e.g. <code>&lt;tr&gt;</code> can only contain <code>&lt;td&gt;</code>, not a wrapping <code>div</code>).
+          </p>
+<pre><code><span class="cm">// Shorthand — no key support</span>
+<span class="kw">return</span> (
+  &lt;&gt;
+    &lt;<span class="tp">td</span>&gt;Cell 1&lt;/<span class="tp">td</span>&gt;
+    &lt;<span class="tp">td</span>&gt;Cell 2&lt;/<span class="tp">td</span>&gt;
+  &lt;/&gt;
+);
+
+<span class="cm">// Explicit — needed when mapping (key goes on Fragment)</span>
+items.<span class="fn">map</span>(item =&gt; (
+  &lt;<span class="tp">React.Fragment</span> <span class="tp">key</span>={item.id}&gt;
+    &lt;<span class="tp">dt</span>&gt;{item.term}&lt;/<span class="tp">dt</span>&gt;
+    &lt;<span class="tp">dd</span>&gt;{item.def}&lt;/<span class="tp">dd</span>&gt;
+  &lt;/<span class="tp">React.Fragment</span>&gt;
+));</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Fragment = <strong>invisible wrapper</strong>. Use <code>&lt;&gt;</code> when a real parent would break layout or produce invalid HTML (like a <code>div</code> between <code>table</code> and <code>tr</code>). Use the explicit form with <code>key</code> when mapping.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. In a controlled input, what is the single source of truth for the input's value?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> The DOM</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> React state</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> A ref</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> The browser's form cache</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Controlled = React state is the source; the <code>value</code> prop mirrors state and <code>onChange</code> updates it.</div>
+      <div class="quiz-feedback incorrect">❌ Controlled means React state owns the value. The DOM is just rendering what state says.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. You use the array index as <code>key</code> and delete the middle item of a list. What can go wrong?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Nothing — index is always a valid key</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> React throws a runtime error</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Component state/text can "move" to the wrong row because React reuses DOM by position</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> The list reorders alphabetically</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Index keys mean "node at position N" — deleting shifts everything, so React updates nodes in place and per-item state lands on the wrong row.</div>
+      <div class="quiz-feedback incorrect">❌ Index keys confuse the reconciler after reorder/delete: DOM nodes get reused by position, so per-row state (input text, ticks) drifts to the wrong item. Use a stable id.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="d">
+      <p class="q-text">3. Why use a Fragment instead of a wrapping <code>&lt;div&gt;</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Fragments render faster than divs</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Fragments support inline styles better</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Fragments are required by JSX</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> To avoid adding an extra DOM node that could break layout or produce invalid HTML</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Fragments group children without a DOM node — critical for valid table markup and for not breaking flex/grid parents.</div>
+      <div class="quiz-feedback incorrect">❌ Fragments exist to avoid extra DOM nodes — a wrapper div can break flex/grid layout or produce invalid HTML (e.g. div inside tbody).</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Confused about controlled inputs or the index-key bug? Ask your AI teacher — these come up in every React interview.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0002-state-core-hooks.html" class="secondary">← Previous: State &amp; Core Hooks</a>
+    <a href="0004-refs-events-memoization.html">Next: Refs, Events &amp; Memoization →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

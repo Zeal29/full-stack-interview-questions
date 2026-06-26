@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — State Management &amp; Context</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 5 of 10</span>
+    <h1>State Management &amp; Context</h1>
+    <p class="subtitle">Prop drilling, the Context API, and useReducer — choosing where state lives and how it flows</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Identify prop drilling and know when to refactor away from it</li>
+      <li>Use the Context API correctly, including its re-render caveat</li>
+      <li>Choose <code>useReducer</code> over <code>useState</code> for complex state</li>
+      <li>Reason about state colocation and the right place to hold data</li>
+    </ul>
+  </div>
+
+  <!-- Section: Where does state live? -->
+  <div class="content-section">
+    <h2>Where Should State Live?</h2>
+    <p>
+      The single most important state-management principle is <strong>colocation</strong>: keep state as close to where it's used as possible. Lift it up only when siblings need to share it; broadcast it globally only when it's truly app-wide (theme, auth, locale). Most state belongs in a single component or a small subtree — not in a global store.
+    </p>
+    <p>
+      When you do need to share data across a deep tree, you have three tools in increasing order of power: <strong>prop drilling</strong> (fine for 1-2 levels), <strong>Context</strong> (broadcast to a subtree without re-passing props), and <strong>useReducer</strong> (manage complex state transitions). An external library (Zustand, Redux, Jotai) is the escape hatch when Context's re-render behaviour becomes a bottleneck.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q15 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What is prop drilling?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Prop drilling is <strong>passing props through intermediate components that don't use them, just to reach a deeply nested child</strong>. The middle components become pure forwarders — they know about data they don't need, which couples them to the deep child's requirements.
+          </p>
+<pre><code><span class="cm">// theme threaded through Layout and Sidebar just to reach Button</span>
+&lt;<span class="tp">App</span> <span class="tp">theme</span>=<span class="st">"dark"</span>&gt;
+  &lt;<span class="tp">Layout</span> <span class="tp">theme</span>={theme}&gt;
+    &lt;<span class="tp">Sidebar</span> <span class="tp">theme</span>={theme}&gt;
+      &lt;<span class="tp">Button</span> <span class="tp">theme</span>={theme} /&gt;</code></pre>
+          <p>
+            <strong>Solutions:</strong> Context API (next card), a state library (Zustand/Redux/Jotai), or <strong>component composition</strong> — passing children as JSX so intermediate components don't need to know about the data. A little drilling (1-2 levels) is fine and often clearer than a context; reach for the bigger tools when it's 3+ levels or the middle components have no business knowing the data.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Prop drilling = <strong>passing the baton through people who don't need it</strong>. If 3+ intermediates just forward a prop, use Context, composition, or a state library.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q16 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What is the Context API?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Context provides a way to <strong>share values across a subtree without prop drilling</strong>. Create a context, wrap consumers in a <code>Provider</code> with a <code>value</code>, and any descendant can read it via <code>useContext</code> — no matter how deep.
+          </p>
+<pre><code><span class="kw">const</span> <span class="tp">ThemeContext</span> = <span class="fn">createContext</span>(<span class="st">"light"</span>);
+
+&lt;<span class="tp">ThemeContext.Provider</span> <span class="tp">value</span>=<span class="st">"dark"</span>&gt;
+  &lt;<span class="tp">App</span> /&gt;
+&lt;/<span class="tp">ThemeContext.Provider</span>&gt;
+
+<span class="cm">// Any descendant:</span>
+<span class="kw">const</span> theme = <span class="fn">useContext</span>(<span class="tp">ThemeContext</span>);</code></pre>
+          <p>
+            <strong>Best for:</strong> low-frequency, app-wide data — theme, auth user, locale, feature flags. <strong>The re-render caveat:</strong> every consumer re-renders whenever the Provider's <code>value</code> changes (by reference). That makes Context a poor fit for high-frequency updates (e.g. a fast-changing slider value consumed widely) — split contexts, memoize the value object, or reach for an external store that uses <code>useSyncExternalStore</code>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Context = <strong>broadcasting</strong> — one provider, many consumers anywhere below. Use for truly global data (theme, auth). Not for high-frequency updates — every consumer re-renders on value change.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q25 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What is the <code>useReducer</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useReducer</code> is an <strong>alternative to <code>useState</code> for complex state logic</strong>. Instead of "set this value", you dispatch an <em>action</em> describing what happened, and a pure <code>reducer</code> function computes the next state. It shines when state involves multiple interdependent fields or when the next state depends on the previous in non-trivial ways.
+          </p>
+<pre><code><span class="kw">const</span> [state, dispatch] = <span class="fn">useReducer</span>(reducer, initialState);
+
+<span class="kw">function</span> <span class="fn">reducer</span>(state, action) {
+  <span class="kw">switch</span> (action.type) {
+    <span class="kw">case</span> <span class="st">"increment"</span>: <span class="kw">return</span> { ...state, <span class="tp">count</span>: state.count + <span class="nm">1</span> };
+    <span class="kw">case</span> <span class="st">"reset"</span>:     <span class="kw">return</span> initialState;
+    <span class="kw">default</span>:           <span class="kw">return</span> state;
+  }
+}
+<span class="cm">// dispatch({ type: "increment" })</span></code></pre>
+          <p>
+            <strong>Reach for it when:</strong> you have many <code>useState</code>s that change together (a multi-field form, a stepper, a fetch state machine), when transitions have rules (valid/invalid moves), or when you want testable state logic (reducers are pure functions). It's "Redux-lite" without the library.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useReducer</code> = <strong>Redux-lite</strong>. Use when <code>useState</code> gets messy (multiple interdependent values, complex transitions). Flow: dispatch → reducer → new state.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">1. When a Context Provider's <code>value</code> prop changes, what happens to consumers?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Nothing — consumers read the value lazily</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Only the closest consumer re-renders</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Every consumer below the provider re-renders</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> React throws a warning</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! A value change (by reference) re-renders all consumers. That's why Context fits low-frequency data, not fast-changing values.</div>
+      <div class="quiz-feedback incorrect">❌ A new <code>value</code> reference re-renders every consumer of that context. High-frequency updates in context cause widespread re-renders.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">2. Which is the BEST fit for <code>useReducer</code> over <code>useState</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> A single boolean toggle</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A multi-step form with interdependent fields and validation rules</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> A counter that only increments</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Storing a fetched user object</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Multiple interdependent fields with transition rules are exactly what reducers model cleanly and testably.</div>
+      <div class="quiz-feedback incorrect">❌ useReducer earns its keep with many interdependent values and complex transitions. Single-value state is <code>useState</code> territory.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. What's the FIRST fix to try for prop drilling before reaching for Context?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Component composition — pass children as JSX so intermediates don't need the data</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Add more props</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Switch to a global Redux store immediately</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Use a query string</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Composition (children as JSX) often removes drilling entirely — the parent owns the data and passes the ready-made subtree, so intermediates stay decoupled.</div>
+      <div class="quiz-feedback incorrect">❌ Composition is the cheapest fix: the data owner passes children as JSX, so intermediates never see the data. Context/store come next when that's not enough.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>State-colocation and the Context re-render caveat are common interview topics — ask for a concrete example if it's fuzzy.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0004-refs-events-memoization.html" class="secondary">← Previous: Refs, Events &amp; Memoization</a>
+    <a href="0006-component-patterns.html">Next: Component Patterns →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

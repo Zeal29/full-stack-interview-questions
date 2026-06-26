@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>React Glossary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <style>
+    .ref-header {
+      text-align: center;
+      padding: var(--space-2xl) 0 var(--space-xl);
+      border-bottom: 2px solid var(--border);
+      margin-bottom: var(--space-2xl);
+    }
+    .ref-header .badge {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: var(--space-xs) var(--space-md);
+      border-radius: 100px;
+      margin-bottom: var(--space-md);
+    }
+    .ref-header h1 {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: var(--space-sm);
+      line-height: 1.2;
+    }
+    .ref-header .subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .glossary-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .glossary-entry {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: var(--space-md);
+      padding: var(--space-lg) var(--space-md);
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+    .glossary-entry:nth-child(even) {
+      background: var(--surface-alt);
+      border-radius: var(--radius-sm);
+    }
+
+    .glossary-term {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--primary-dark);
+      padding-top: 2px;
+    }
+
+    .glossary-def {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    .glossary-def strong { color: var(--text); }
+
+    .glossary-def .interview {
+      display: block;
+      margin-top: var(--space-xs);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+    .glossary-def .interview::before {
+      content: "💬 Interview one-liner: ";
+      font-style: normal;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .letter-anchor {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--primary);
+      padding: var(--space-lg) 0 var(--space-sm);
+      border-bottom: 2px solid var(--primary);
+      margin-bottom: var(--space-md);
+      margin-top: var(--space-xl);
+      display: block;
+    }
+    .letter-anchor:first-of-type { margin-top: 0; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md) var(--space-lg);
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background var(--transition-fast);
+    }
+    .back-link:hover { background: var(--primary-dark); }
+
+    @media (max-width: 640px) {
+      .glossary-entry { grid-template-columns: 1fr; gap: var(--space-xs); }
+    }
+    @media print {
+      .back-link { display: none; }
+      .glossary-entry:nth-child(even) { background: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="ref-header">
+    <div class="badge">Glossary</div>
+    <h1>React Glossary</h1>
+    <p class="subtitle">Every term you'll encounter — defined, with an interview-ready one-liner.</p>
+  </header>
+
+  <!-- ═══ B ═══ -->
+  <h3 class="letter-anchor">B</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Batching</span>
+      <div class="glossary-def">
+        React collapsing multiple state updates into a single re-render for performance. React 18 introduced <strong>automatic batching</strong> — updates in promises, timeouts, and native handlers batch too, not just React event handlers.
+        <span class="interview">"React 18 batches updates everywhere — three <code>setState</code> calls in a handler produce one render."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ C ═══ -->
+  <h3 class="letter-anchor">C</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Cleanup</span>
+      <div class="glossary-def">
+        The optional function returned from <code>useEffect</code> that runs before the next effect and on unmount — used to tear down subscriptions, clear timers, cancel fetches.
+        <span class="interview">"Cleanup runs before the next effect and on unmount — missing it is the #1 source of memory leaks and stale-state bugs."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Compound Components</span>
+      <div class="glossary-def">
+        A set of components that share state implicitly through context, exposing a composable API — like HTML's <code>&lt;select&gt;</code> + <code>&lt;option&gt;</code>. Used by design systems (Radix, Headless UI) for Tabs, Accordion, Menu.
+        <span class="interview">"Like <code>&lt;select&gt;</code> + <code>&lt;option&gt;</code> — children share parent state via context, no explicit props."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Concurrent Rendering</span>
+      <div class="glossary-def">
+        React 18's rendering model where updates can be interrupted, paused, and resumed, allowing urgent updates to preempt non-urgent ones. Powered by Fiber; exposed via <code>startTransition</code>, <code>useTransition</code>, <code>useDeferredValue</code>.
+        <span class="interview">"Concurrent rendering lets React interrupt a slow render to handle an urgent update — the foundation of transitions and Suspense for data."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Controlled Component</span>
+      <div class="glossary-def">
+        An input whose value is driven by React state — <code>value</code> mirrors state, <code>onChange</code> updates it. React is the single source of truth.
+        <span class="interview">"Controlled = React drives; state is the source of truth. Use it for live validation and formatting."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ E ═══ -->
+  <h3 class="letter-anchor">E</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Effect</span>
+      <div class="glossary-def">
+        Code run by <code>useEffect</code> that synchronizes a component with an external system (network, DOM, subscription). Effects run after render (after paint).
+        <span class="interview">"An effect synchronizes the component with something outside React. Don't use it to chain state — derive during render where possible."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Error Boundary</span>
+      <div class="glossary-def">
+        A class component that catches errors thrown during rendering, in lifecycle methods, and in constructors of its children — displaying fallback UI. <strong>Must be a class component.</strong>
+        <span class="interview">"try/catch for JSX — but only for render-phase errors, not event handlers or async code."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ F ═══ -->
+  <h3 class="letter-anchor">F</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Fiber</span>
+      <div class="glossary-def">
+        React's reconciliation engine (rewritten in v16). Breaks rendering work into interruptible units ("fibers"), supports priorities, and is the foundation for concurrent features.
+        <span class="interview">"Fiber = React 16's engine. Interruptible, priority-aware work units — the basis of transitions and concurrent rendering."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ H ═══ -->
+  <h3 class="letter-anchor">H</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Higher-Order Component (HOC)</span>
+      <div class="glossary-def">
+        A function that takes a component and returns an enhanced component. The pre-hooks pattern for cross-cutting concerns (auth, logging). Largely replaced by hooks.
+        <span class="interview">"HOC = wrapper function: component in, enhanced component out. Hooks replaced most uses; <code>connect()</code> in redux is the famous example."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Hydration</span>
+      <div class="glossary-def">
+        The process where React "adopts" server-rendered HTML on the client — attaching event listeners and reconciling the existing DOM rather than rebuilding it. Uses <code>hydrateRoot</code>.
+        <span class="interview">"Hydration wakes up server HTML with JS. Mismatches between server and client output cause warnings and re-renders."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ M ═══ -->
+  <h3 class="letter-anchor">M</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Memoization</span>
+      <div class="glossary-def">
+        Caching a computed result or function reference so it isn't recreated on every render. Provided by <code>useMemo</code> (values), <code>useCallback</code> (functions), and <code>React.memo</code> (components).
+        <span class="interview">"Memoization caches work — but it isn't free. Reach for it only when profiling shows a real bottleneck, or when identity stability is required."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ O ═══ -->
+  <h3 class="letter-anchor">O</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Optimistic Update</span>
+      <div class="glossary-def">
+        Showing a UI change immediately, before the server confirms it, and reverting if it fails. React 19 provides <code>useOptimistic</code> for this pattern.
+        <span class="interview">"Assume the action succeeds, show it instantly, revert on failure — <code>useOptimistic</code> handles the bookkeeping."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ P ═══ -->
+  <h3 class="letter-anchor">P</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Portal</span>
+      <div class="glossary-def">
+        A way to render children into a DOM node outside the parent's hierarchy, while keeping them in the React tree (so events bubble and context works). Uses <code>createPortal</code>.
+        <span class="interview">"Portal = render here, show there. Modals stay in the React tree but appear at <code>document.body</code>."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Prop Drilling</span>
+      <div class="glossary-def">
+        Passing props through intermediate components that don't use them, just to reach a deeply nested child. A code smell when 3+ intermediates are pure forwarders.
+        <span class="interview">"Passing the baton through people who don't need it. Fix with composition, Context, or a state library."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Progressive Enhancement</span>
+      <div class="glossary-def">
+        Building UI so it works at a baseline without JavaScript, then enhancing with JS. React Server Actions enable this — forms POST natively, JS adds interactivity.
+        <span class="interview">"Server Actions work without JS — the form POSTs natively; JS just enhances the experience."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ R ═══ -->
+  <h3 class="letter-anchor">R</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Reconciliation</span>
+      <div class="glossary-def">
+        React's algorithm for diffing old vs new virtual DOM trees to determine the minimum real-DOM mutations. Rules: different type → rebuild; same type → update in place; children matched by <code>key</code>.
+        <span class="interview">"Reconciliation = 'what changed?' Different type = nuke and rebuild; same type = update in place; keys = identity for list children."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Render Props</span>
+      <div class="glossary-def">
+        A prop whose value is a function returning JSX — the parent owns state and calls the function to let the consumer decide rendering. Largely replaced by hooks.
+        <span class="interview">"Render prop = 'you tell me how to render, I give you the data.' Hooks replaced it; you'll see it in older libraries."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ S ═══ -->
+  <h3 class="letter-anchor">S</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">SSR (Server-Side Rendering)</span>
+      <div class="glossary-def">
+        Rendering React to HTML on the server and sending it to the client for fast first paint and SEO. The client then hydrates it into an interactive app.
+        <span class="interview">"SSR = render to HTML on the server for fast paint + SEO, then hydrate on the client for interactivity."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">RSC (React Server Components)</span>
+      <div class="glossary-def">
+        Components that run only on the server, can be async, and ship zero JavaScript to the client. Client Components opt in with <code>"use client"</code>.
+        <span class="interview">"RSC = zero-JS backend components. They fetch data directly, ship no code, and pair with Client Components for interactivity."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Stale Closure</span>
+      <div class="glossary-def">
+        A bug where a long-lived function (interval, subscription) captures variables from the render it was created in, never seeing updates. Fixed by adding deps, using a ref, or the functional updater.
+        <span class="interview">"A stale closure captures old state forever. Fix: add the dep, use a ref, or use <code>setX(prev =&gt; ...)</code>."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">StrictMode</span>
+      <div class="glossary-def">
+        A dev-only wrapper that surfaces potential problems — unsafe lifecycles, deprecated APIs — and double-invokes render and effects to expose impure code. Zero production effect.
+        <span class="interview">"StrictMode double-invokes in dev to catch impure code. If your effect breaks when run twice, it isn't pure."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Suspense</span>
+      <div class="glossary-def">
+        A component that shows a fallback while its children are loading (lazy components, suspending data fetches via <code>use</code>). Pairs with Error Boundaries for failure states.
+        <span class="interview">"<code>&lt;Suspense fallback={...}&gt;</code> shows a spinner while children load — code splitting and the React 19 data model both rely on it."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ T ═══ -->
+  <h3 class="letter-anchor">T</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Transition</span>
+      <div class="glossary-def">
+        A low-priority state update marked by <code>startTransition</code> or <code>useTransition</code>. Urgent updates (typing) can interrupt it. <code>isPending</code> flags in-progress work.
+        <span class="interview">"A transition marks an update as non-urgent — urgent input stays snappy; <code>isPending</code> gives you a loading flag."</span>
+      </div>
+    </li>
+    <li class="glossary-entry">
+      <span class="glossary-term">Tearing</span>
+      <div class="glossary-def">
+        An inconsistency where different parts of the UI read different snapshots of an external store during a single concurrent render pass. <code>useSyncExternalStore</code> prevents it.
+        <span class="interview">"Tearing = different UI sections showing different snapshots. <code>useSyncExternalStore</code> is the cure for external stores under concurrent rendering."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ U ═══ -->
+  <h3 class="letter-anchor">U</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Uncontrolled Component</span>
+      <div class="glossary-def">
+        An input where the DOM owns the value; React reads it on demand via a ref (<code>defaultValue</code> sets the initial). Good for simple forms and non-React integrations.
+        <span class="interview">"Uncontrolled = DOM drives; read via ref at submit. Less code, less control — good for simple forms or legacy widgets."</span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- ═══ V ═══ -->
+  <h3 class="letter-anchor">V</h3>
+  <ul class="glossary-list">
+    <li class="glossary-entry">
+      <span class="glossary-term">Virtual DOM</span>
+      <div class="glossary-def">
+        A lightweight in-memory JS object tree that mirrors the real DOM. React diffs old vs new virtual trees and applies only the minimal changes to the real DOM (reconciliation).
+        <span class="interview">"Virtual DOM = a blueprint. React diffs blueprints cheaply, then touches the real DOM as little as possible."</span>
+      </div>
+    </li>
+  </ul>
+
+  <footer style="text-align: center; padding: var(--space-xl) 0; margin-top: var(--space-2xl); border-top: 2px solid var(--border);">
+    <a href="../lessons/0001-fundamentals.html" class="back-link">← Back to Lessons</a>
+  </footer>
+
+</body>
+</html>

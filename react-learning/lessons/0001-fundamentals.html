@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — React Fundamentals</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 1 of 10</span>
+    <h1>React Fundamentals</h1>
+    <p class="subtitle">What React is, JSX, the virtual DOM, components, and props — the mental model every React interview starts from</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Explain what React is and why its component model changed frontend development</li>
+      <li>Describe JSX and how it compiles to function calls</li>
+      <li>Articulate how the virtual DOM and reconciliation make updates fast</li>
+      <li>Distinguish function vs class components and when each is relevant</li>
+      <li>Explain props, immutability, and the unidirectional data flow</li>
+    </ul>
+  </div>
+
+  <!-- Section: What is React -->
+  <div class="content-section">
+    <h2>What is React?</h2>
+    <p>
+      React is a <strong>JavaScript library for building user interfaces</strong>, created at Meta (Facebook) and open-sourced in 2013. The key idea: instead of imperatively poking at the DOM (find element, update its text, add a class), you <em>describe</em> the UI as a function of state, and React figures out which DOM changes to make. This is the <strong>"UI = f(state)"</strong> model.
+    </p>
+    <p>
+      React focuses on the view layer — it is a library, not a full framework. You bring your own routing (React Router, TanStack Router), state management (Context, Zustand, Redux), and build tooling (Vite, Next.js). This "unopinionated" nature is both its flexibility and its interview relevance: you're expected to know the surrounding ecosystem and the trade-offs.
+    </p>
+    <p>
+      Modern React (18/19) is built on a <strong>concurrent renderer</strong> and a reconciliation engine called <strong>Fiber</strong>. We'll dig into those internals in Lesson 8. For now, the foundation: components return JSX, state drives re-renders, and React keeps a virtual DOM to diff efficiently.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q1 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">1</span>
+          <span>What is React?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            React is a <strong>JavaScript library for building user interfaces</strong> using reusable components. It uses a virtual DOM for efficient updates, JSX for templating, and a unidirectional (top-down) data flow. Created by Meta (Facebook).
+          </p>
+          <p>
+            The core value proposition is the <strong>declarative model</strong>: you describe what the UI should look like for a given state, and React handles updating the DOM when state changes. Contrast this with jQuery-era imperative code, where you manually found elements and mutated them.
+          </p>
+<pre><code><span class="cm">// Declarative: UI is a function of state</span>
+<span class="kw">function</span> <span class="tp">Counter</span>({ count }) {
+  <span class="kw">return</span> &lt;<span class="tp">button</span>&gt;Clicked {count} times&lt;/<span class="tp">button</span>&gt;;
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            React = <strong>component-based UI library</strong> (not a framework). It owns the view layer — you add routing, state, and tooling yourself. Interview one-liner: "a declarative, component-based UI library that renders UI as a function of state."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">2</span>
+          <span>What is JSX?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            JSX is a <strong>syntax extension that lets you write HTML-like code inside JavaScript</strong>: <code>const el = &lt;h1&gt;Hello&lt;/h1&gt;</code>. A compiler (Babel or the modern JSX transform) turns it into <code>React.createElement()</code> (or the automatic <code>jsx()</code>) calls. JSX is not HTML — it's syntactic sugar for JavaScript function calls.
+          </p>
+          <p>
+            Because it compiles to plain JS, you can embed any JavaScript expression inside it with <code>{ }</code>. Differences from HTML: <code>class</code> becomes <code>className</code>, <code>for</code> becomes <code>htmlFor</code>, attributes are camelCase (<code>onClick</code> not <code>onclick</code>), and style takes an object not a string.
+          </p>
+<pre><code><span class="cm">// JSX...</span>
+<span class="kw">const</span> el = &lt;<span class="tp">h1</span> <span class="tp">className</span>=<span class="st">"title"</span>&gt;Hello {name}&lt;/<span class="tp">h1</span>&gt;;
+
+<span class="cm">// ...compiles to:</span>
+<span class="kw">const</span> el = <span class="fn">jsx</span>(<span class="st">"h1"</span>, { <span class="tp">className</span>: <span class="st">"title"</span>, <span class="tp">children</span>: [<span class="st">"Hello "</span>, name] });</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            JSX = <strong>HTML in JavaScript</strong> (not JavaScript in HTML). It's compile-time sugar for function calls — browsers never see JSX. Remember the gotchas: <code>className</code>, <code>htmlFor</code>, one root element per return (or use a Fragment).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">3</span>
+          <span>What is the Virtual DOM?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            The Virtual DOM is a <strong>lightweight JavaScript object representation of the real DOM</strong>. React keeps an in-memory tree that mirrors the rendered DOM. On every state change, React builds a <em>new</em> virtual tree, compares (diffs) it against the previous one, and computes the minimum set of real DOM mutations required. This comparison process is called <strong>reconciliation</strong>.
+          </p>
+          <p>
+            Why is this fast? Real DOM operations (layout, paint, reflow) are expensive. By diffing cheap JavaScript objects first, React batches and minimizes the expensive real-DOM writes. Note: the virtual DOM is not magic — its win is <em>predictable, batched, minimal</em> updates, not raw speed versus a perfectly hand-optimized update.
+          </p>
+<pre><code><span class="cm">// A virtual DOM node is just an object:</span>
+{
+  <span class="tp">type</span>: <span class="st">"div"</span>,
+  <span class="tp">props</span>: { <span class="tp">className</span>: <span class="st">"card"</span>, <span class="tp">children</span>: <span class="st">"Hi"</span> }
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Virtual DOM = <strong>a blueprint</strong>. React compares old and new blueprints, then applies only the diffs to the real DOM. Much cheaper than rewriting everything. The diffing is <em>reconciliation</em> (see Lesson 8).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">4</span>
+          <span>What are components in React?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Components are <strong>reusable, self-contained UI building blocks</strong>. There are two kinds:
+          </p>
+          <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+            <li><strong>Function components</strong> — plain functions that return JSX. The modern standard, paired with hooks for state and effects.</li>
+            <li><strong>Class components</strong> — ES6 classes with a <code>render()</code> method and lifecycle methods. Legacy, but you must still recognize them (and know they're the <em>only</em> way to write an error boundary — see Lesson 6).</li>
+          </ul>
+          <p>
+            A component's name must start with a capital letter — lowercase tags are treated as DOM elements, capitalised tags as components. Modern React almost exclusively uses function components with hooks.
+          </p>
+<pre><code><span class="cm">// Function component (modern)</span>
+<span class="kw">function</span> <span class="tp">Greeting</span>({ name }) {
+  <span class="kw">return</span> &lt;<span class="tp">h1</span>&gt;Hello, {name}&lt;/<span class="tp">h1</span>&gt;;
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Function components = <strong>modern way</strong>; class components = <strong>legacy</strong> (but still needed for error boundaries). Capitalized names = components; lowercase = HTML elements.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3>
+          <span class="q-badge">5</span>
+          <span>What are props in React?</span>
+        </h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)">
+        <span class="icon">▼</span> Reveal Answer
+      </button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Props (properties) are <strong>read-only data passed from a parent component to a child</strong>. Data flows <em>one direction</em> — top-down (parent → child). A child cannot modify its props; they are immutable. To communicate upward, the parent passes a <strong>callback function</strong> as a prop, and the child calls it.
+          </p>
+          <p>
+            This unidirectional flow makes data flow predictable and debuggable — you can always trace where data came from by walking up the tree. Contrast this with two-way binding (Angular, Vue) where changes propagate in both directions.
+          </p>
+<pre><code><span class="cm">// Parent passes props down + a callback for upward comm</span>
+&lt;<span class="tp">Parent</span>&gt;
+  &lt;<span class="tp">Child</span> <span class="tp">name</span>=<span class="st">"Ali"</span> <span class="tp">onDone</span>={handleDone} /&gt;
+&lt;/<span class="tp">Parent</span>&gt;
+
+<span class="cm">// Child: props are read-only</span>
+<span class="kw">function</span> <span class="tp">Child</span>({ name, onDone }) {
+  <span class="kw">return</span> &lt;<span class="tp">button</span> <span class="tp">onClick</span>={onDone}&gt;Hi {name}&lt;/<span class="tp">button</span>&gt;;
+}</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Props = <strong>arguments for components</strong>. One-way street: parent → child. To go upward, the parent hands down a callback the child invokes. Props are immutable — mutating them is a React error.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. What does JSX compile to at build time?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Raw HTML injected into the DOM</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> JavaScript function calls (createElement / jsx)</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> WebAssembly modules</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> CSS-in-JS style objects</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! JSX is syntactic sugar — the compiler turns <code>&lt;h1&gt;Hi&lt;/h1&gt;</code> into a <code>createElement</code>/<code>jsx()</code> call. Browsers never see JSX.</div>
+      <div class="quiz-feedback incorrect">❌ JSX is sugar over function calls. <code>&lt;h1&gt;Hi&lt;/h1&gt;</code> becomes something like <code>jsx("h1", { children: "Hi" })</code>.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. Which is true about the virtual DOM?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> It is a separate browser API for faster rendering</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> It always renders faster than direct DOM manipulation</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> It's an in-memory JS object tree that React diffs before touching the real DOM</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It replaces the real DOM entirely</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! The virtual DOM is a lightweight JS representation. React diffs old vs new, then applies only the minimal real-DOM changes (reconciliation).</div>
+      <div class="quiz-feedback incorrect">❌ The virtual DOM is an in-memory JS tree React diffs first. It's not magic — its win is predictable, minimal, batched real-DOM updates.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. How does a child component send data back up to its parent?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> The parent passes a callback function as a prop; the child calls it</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> The child mutates its props directly</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> The child writes to a shared global variable</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Props automatically flow back up to the parent</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Data flows down via props; upward communication uses a callback the parent hands down. Props are immutable to the child.</div>
+      <div class="quiz-feedback incorrect">❌ Props are read-only and flow only downward. The parent must pass a callback prop that the child invokes to communicate upward.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Confused about JSX, the virtual DOM, or props? Ask your AI teacher — these fundamentals are worth getting exactly right.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <span></span>
+    <a href="0002-state-core-hooks.html">Next: State &amp; Core Hooks →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Toggle answer visibility
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    // Quiz functionality
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+
+          const selected = opt.dataset.value;
+          
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) {
+              o.classList.add('correct');
+            }
+          });
+
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q => 
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

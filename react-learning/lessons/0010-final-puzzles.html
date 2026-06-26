@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 10 — Final Exam: React Puzzles</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 10 of 10</span>
+    <h1>Final Exam: React Puzzles</h1>
+    <p class="subtitle">Test your applied knowledge — 15 puzzles from easy to hard. Try to solve each before revealing the answer.</p>
+  </div>
+
+  <!-- Instructions -->
+  <div class="objectives">
+    <h2>How This Works</h2>
+    <ul>
+      <li>Read each puzzle carefully. Try to solve it mentally or on paper first.</li>
+      <li>Click <strong>"Reveal Solution"</strong> only after you've formed your answer.</li>
+      <li>Puzzles are organized in three tiers: <strong>Easy</strong>, <strong>Medium</strong>, and <strong>Hard</strong>.</li>
+      <li>Solutions explain <em>why</em>, not just what — the reasoning is the real lesson.</li>
+    </ul>
+  </div>
+
+  <!-- Progress Counter -->
+  <div style="text-align:center; margin-bottom: var(--space-xl);">
+    <span id="progressCounter" style="font-size:0.9rem; color: var(--text-secondary); font-weight:600;">Puzzles attempted: 0 of 15</span>
+  </div>
+
+  <!-- ============================================ -->
+  <!--              EASY PUZZLES (1–5)              -->
+  <!-- ============================================ -->
+  <div class="content-section">
+    <h2>🟢 Easy Puzzles</h2>
+
+    <!-- Puzzle 1 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 1 — Predict the Output</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          A button click handler calls <code>setCount</code> three times in a row. After the click, what does <code>count</code> render as — and why?
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">Counter</span>() {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="nm">0</span>);
+
+  <span class="kw">function</span> <span class="fn">handleClick</span>() {
+    <span class="fn">setCount</span>(count + <span class="nm">1</span>);
+    <span class="fn">setCount</span>(count + <span class="nm">1</span>);
+    <span class="fn">setCount</span>(count + <span class="nm">1</span>);
+  }
+
+  <span class="kw">return</span> &lt;<span class="tp">button</span> <span class="tp">onClick</span>={handleClick}&gt;{count}&lt;/<span class="tp">button</span>&gt;;
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              The button shows <strong>1</strong>, not 3. All three calls read the <em>same</em> <code>count</code> from this render (which is <code>0</code>), so each computes <code>0 + 1</code>. React batches them into a single re-render with the final value <code>1</code>.
+            </p>
+            <p><strong>The fix — use the functional updater form:</strong></p>
+<pre><code><span class="kw">function</span> <span class="fn">handleClick</span>() {
+  <span class="fn">setCount</span>(<span class="tp">c</span> =&gt; <span class="tp">c</span> + <span class="nm">1</span>); <span class="cm">// sees 0 → queues 1</span>
+  <span class="fn">setCount</span>(<span class="tp">c</span> =&gt; <span class="tp">c</span> + <span class="nm">1</span>); <span class="cm">// sees 1 → queues 2</span>
+  <span class="fn">setCount</span>(<span class="tp">c</span> =&gt; <span class="tp">c</span> + <span class="nm">1</span>); <span class="cm">// sees 2 → queues 3 → renders 3</span>
+}</code></pre>
+            <p>
+              <strong>Why:</strong> state updates are batched and asynchronous. During a single event handler, <code>count</code> is a snapshot from the current render and doesn't change. The functional updater receives the <em>latest queued</em> value, so each call builds on the previous one. This is the #1 React gotcha and an extremely common interview question.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              State variables are snapshots per render. When the new state depends on the old, always use the functional form <code>setX(prev =&gt; ...)</code> — it's the only way to safely chain updates under batching.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 2 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 2 — Spot the Infinite Loop</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          This component crashes the browser tab with an infinite re-render loop. What's the bug, and what's the minimal fix?
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">Profile</span>({ id }) {
+  <span class="kw">const</span> [user, setUser] = <span class="fn">useState</span>(<span class="kw">null</span>);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="fn">fetchUser</span>(id).<span class="fn">then</span>(setUser);
+  }); <span class="cm">// ← no dependency array</span>
+
+  <span class="kw">return</span> &lt;<span class="tp">div</span>&gt;{user?.name}&lt;/<span class="tp">div</span>&gt;;
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              The effect has <strong>no dependency array</strong>, so it runs after <em>every</em> render. The flow: render → effect runs → <code>setUser</code> → re-render → effect runs again → <code>setUser</code> → … forever. Each fetch resolves and triggers another render, which triggers another fetch.
+            </p>
+            <p><strong>Minimal fix — add the dependency array:</strong></p>
+<pre><code><span class="fn">useEffect</span>(() =&gt; {
+  <span class="fn">fetchUser</span>(id).<span class="fn">then</span>(setUser);
+}, [id]); <span class="cm">// only re-run when id changes</span></code></pre>
+            <p>
+              <strong>Why:</strong> the dependency array is the effect's contract for "when should this re-run?" <code>[id]</code> means "run on mount, and again only if <code>id</code> changes." Without it, React assumes the effect depends on everything and re-runs it every render. Even better: add an ignore flag to avoid setting state after unmount, and handle the loading/error states.
+            </p>
+<pre><code><span class="fn">useEffect</span>(() =&gt; {
+  <span class="kw">let</span> ignore = <span class="kw">false</span>;
+  <span class="fn">fetchUser</span>(id).<span class="fn">then</span>(u =&gt; { <span class="kw">if</span> (!ignore) <span class="fn">setUser</span>(u); });
+  <span class="kw">return</span> () =&gt; { ignore = <span class="kw">true</span>; };
+}, [id]);</code></pre>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              The three dependency-array modes: <code>[]</code> = mount only; <code>[deps]</code> = mount + when deps change; <strong>no array = every render</strong> (almost always a bug). Setting state in a no-array effect is the textbook infinite-loop bug.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 3 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 3 — The Disappearing Checkbox</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          A list of todos uses the array index as <code>key</code>. Each row has a checkbox. You check the first row's box, then delete the first todo. Describe the visual bug and explain why it happens.
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">TodoList</span>({ todos, onRemove }) {
+  <span class="kw">return</span> (
+    &lt;<span class="tp">ul</span>&gt;
+      {todos.<span class="fn">map</span>((todo, index) =&gt; (
+        &lt;<span class="tp">li</span> <span class="tp">key</span>={index}&gt;
+          &lt;<span class="tp">input</span> <span class="tp">type</span>=<span class="st">"checkbox"</span> /&gt; <span class="cm">{/* uncontrolled */}</span>
+          {todo.text}
+          &lt;<span class="tp">button</span> <span class="tp">onClick</span>={() =&gt; <span class="fn">onRemove</span>(index)}&gt;x&lt;/<span class="tp">button</span>&gt;
+        &lt;/<span class="tp">li</span>&gt;
+      ))}
+    &lt;/<span class="tp">ul</span>&gt;
+  );
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>The bug:</strong> the checked state appears to "move down" to the new first row. After deletion, the second todo's row shows the checkbox as checked, even though you never touched it.
+            </p>
+            <p>
+              <strong>Why:</strong> with index keys, React identifies rows by position, not identity. Deleting the first item shifts everything up by one. React sees "the row at index 0 still exists" and reuses its DOM node — including the uncontrolled checkbox's internal checked state — then updates only the text to the new todo. The checkbox DOM element is reused, so its checked state persists on the wrong row.
+            </p>
+            <p><strong>Fix — use a stable unique id from the data:</strong></p>
+<pre><code>{todos.<span class="fn">map</span>(todo =&gt; (
+  &lt;<span class="tp">li</span> <span class="tp">key</span>={todo.id}&gt;
+    &lt;<span class="tp">input</span> <span class="tp">type</span>=<span class="st">"checkbox"</span> /&gt;
+    {todo.text}
+  &lt;/<span class="tp">li</span>&gt;
+))}</code></pre>
+            <p>
+              With stable keys, React sees "the row with <code>id: 5</code> was removed" and unmounts its DOM node entirely (including its checkbox state) — instead of shuffling state between reused nodes.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Keys are about <strong>identity, not ordering</strong>. Index keys conflate "position" with "identity," so any reorder/insert/delete transfers per-row state (checkboxes, uncontrolled inputs, animations) to the wrong item. Always use a stable id from the data.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 4 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 4 — Props or State?</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          You're building a <code>&lt;Counter initialCount={5} /&gt;</code> component. The parent passes <code>initialCount</code>, and the user can click +/− to change the displayed number. Which data should be props, which should be state, and why?
+        </p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <code>initialCount</code> is a <strong>prop</strong> (the parent owns it; the child only reads it once). The <strong>current count is state</strong> — it's internal data the component owns and mutates, and it's what drives re-renders.
+            </p>
+<pre><code><span class="kw">function</span> <span class="tp">Counter</span>({ initialCount }) {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(initialCount); <span class="cm">// seed once</span>
+  <span class="kw">return</span> (
+    &lt;<span class="tp">button</span> <span class="tp">onClick</span>={() =&gt; <span class="fn">setCount</span>(c =&gt; c + <span class="nm">1</span>)}&gt;
+      {count}
+    &lt;/<span class="tp">button</span>&gt;
+  );
+}</code></pre>
+            <p>
+              <strong>The decision rule:</strong>
+            </p>
+            <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+              <li><strong>Is the value passed in by the parent?</strong> → props.</li>
+              <li><strong>Does the value change over time, driven from inside this component?</strong> → state.</li>
+              <li><strong>Can you compute it from existing state/props?</strong> → neither (derive it during render).</li>
+            </ul>
+            <p>
+              <strong>Gotcha:</strong> if <code>initialCount</code> changes later, the counter will <em>not</em> reset, because <code>useState(initialCount)</code> only reads the initial value once. If you need it to reset when the prop changes, either use a <code>key</code> to remount the component, or sync with <code>useEffect</code> (the "key to reset" approach is preferred and cleaner).
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Props = external input (read-only). State = internal memory (mutable by the component). The <code>initial*</code> pattern seeds state from a prop once; to re-seed, change the component's <code>key</code> rather than fighting <code>useState</code>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 5 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 5 — Effect Timing</span>
+        <span class="puzzle-difficulty easy">easy</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          What does this component log to the console on its first render, and in what order?
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">App</span>() {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="st">"A: during render"</span>);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="st">"B: in effect"</span>);
+  }, []);
+
+  <span class="kw">return</span> &lt;<span class="tp">div</span>&gt;hi&lt;/<span class="tp">div</span>;
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>Order: "A: during render" first, then "B: in effect" — after the browser has painted.</strong>
+            </p>
+            <p>
+              <strong>Why:</strong> React's render cycle is <em>render → commit → paint → effect</em>. The component function runs ("A"), React commits the virtual DOM to the real DOM, the browser paints the screen, and only then do passive effects (<code>useEffect</code>) fire ("B"). So effects run <strong>after paint</strong>, asynchronously — they never block the user from seeing the initial UI.
+            </p>
+            <p>
+              This is why <code>useEffect</code> is the right default for data fetching: the user sees the initial render (often a skeleton) immediately, and the fetch kicks off after paint. If you needed to read DOM layout <em>before</em> paint to avoid flicker, you'd reach for <code>useLayoutEffect</code> instead — it runs synchronously between commit and paint.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              The lifecycle per render: <strong>render → commit (DOM mutated) → browser paint → passive effects (<code>useEffect</code>)</strong>. Effects run after paint; that's why they're non-blocking and why reading layout in them can cause a one-frame flicker.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--            MEDIUM PUZZLES (6–10)             -->
+  <!-- ============================================ -->
+  <div class="content-section">
+    <h2>🟡 Medium Puzzles</h2>
+
+    <!-- Puzzle 6 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 6 — The Stale Counter</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          This timer is supposed to log the current count every second — but it always logs <code>0</code>, no matter how many times you click. Diagnose the bug and give two valid fixes.
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">Timer</span>() {
+  <span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="nm">0</span>);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="kw">const</span> id = <span class="fn">setInterval</span>(() =&gt; {
+      <span class="fn">console</span>.<span class="fn">log</span>(count); <span class="cm">// always logs 0</span>
+    }, <span class="nm">1000</span>);
+    <span class="kw">return</span> () =&gt; <span class="fn">clearInterval</span>(id);
+  }, []); <span class="cm">// ← empty deps</span>
+
+  <span class="kw">return</span> &lt;<span class="tp">button</span> <span class="tp">onClick</span>={() =&gt; <span class="fn">setCount</span>(c =&gt; c + <span class="nm">1</span>)}&gt;{count}&lt;/<span class="tp">button</span>&gt;;
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>The bug — a stale closure.</strong> The effect runs once (empty deps) and captures <code>count</code> from that first render, which is <code>0</code>. The interval's callback closes over that <em>original</em> <code>count</code> forever. Later renders create new <code>count</code> values, but the interval is still referencing the old one.
+            </p>
+            <p><strong>Fix 1 — add <code>count</code> to the dependency array.</strong> The effect re-runs (and resets the interval) whenever count changes:</p>
+<pre><code><span class="fn">useEffect</span>(() =&gt; {
+  <span class="kw">const</span> id = <span class="fn">setInterval</span>(() =&gt; <span class="fn">console</span>.<span class="fn">log</span>(count), <span class="nm">1000</span>);
+  <span class="kw">return</span> () =&gt; <span class="fn">clearInterval</span>(id);
+}, [count]); <span class="cm">// ← fresh closure each time count changes</span></code></pre>
+            <p><strong>Fix 2 — use a ref to hold the latest value</strong> (avoids resetting the interval):</p>
+<pre><code><span class="kw">const</span> countRef = <span class="fn">useRef</span>(count);
+<span class="fn">useEffect</span>(() =&gt; { countRef.current = count; }); <span class="cm">// keep ref fresh every render</span>
+
+<span class="fn">useEffect</span>(() =&gt; {
+  <span class="kw">const</span> id = <span class="fn">setInterval</span>(() =&gt; <span class="fn">console</span>.<span class="fn">log</span>(countRef.current), <span class="nm">1000</span>);
+  <span class="kw">return</span> () =&gt; <span class="fn">clearInterval</span>(id);
+}, []); <span class="cm">// interval set up once; reads latest via ref</span></code></pre>
+            <p>
+              <strong>Fix 3 (if updating state) — functional updater:</strong> if the interval was doing <code>setCount(count + 1)</code>, switch to <code>setCount(c =&gt; c + 1)</code> — no closure on <code>count</code> at all. Choose Fix 1 when re-running is cheap; Fix 2 when the setup (WebSocket, expensive subscription) shouldn't be torn down.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              A "stale closure" is when a long-lived function (interval, subscription, event listener) captures variables from the render it was created in, never seeing updates. Three fixes: re-run the effect (add deps), read via a ref, or use the functional updater form for state.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 7 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 7 — Design <code>useDebounce</code></span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          Design a custom hook <code>useDebounce(value, delay)</code> that returns a debounced copy of <code>value</code> — it only updates after <code>value</code> has stopped changing for <code>delay</code> ms. Write the implementation and explain each line.
+        </p>
+<pre><code><span class="cm">// Target API:</span>
+<span class="kw">const</span> debouncedQuery = <span class="fn">useDebounce</span>(query, <span class="nm">300</span>);</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+<pre><code><span class="kw">function</span> <span class="fn">useDebounce</span>(value, delay) {
+  <span class="kw">const</span> [debounced, setDebounced] = <span class="fn">useState</span>(value);
+
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="cm">// 1. Schedule the update after `delay` ms</span>
+    <span class="kw">const</span> id = <span class="fn">setTimeout</span>(() =&gt; {
+      <span class="fn">setDebounced</span>(value);
+    }, delay);
+
+    <span class="cm">// 2. Cleanup: clear the timer if value changes again before delay elapses</span>
+    <span class="kw">return</span> () =&gt; <span class="fn">clearTimeout</span>(id);
+  }, [value, delay]); <span class="cm">// re-run when value OR delay changes</span>
+
+  <span class="kw">return</span> debounced;
+}</code></pre>
+            <p>
+              <strong>How it works, line by line:</strong>
+            </p>
+            <ol style="margin-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+              <li><code>useState(value)</code> — hold the debounced value, seeded with the initial value.</li>
+              <li>The effect runs whenever <code>value</code> changes (it's a dependency).</li>
+              <li><code>setTimeout</code> schedules the actual update <code>delay</code> ms later.</li>
+              <li>The <strong>cleanup clears the pending timer</strong>. So if <code>value</code> changes again before <code>delay</code> elapses, the effect re-runs, the cleanup cancels the previous timer, and a new one starts — only the last change survives the full delay.</li>
+            </ol>
+            <p>
+              Classic use case: a search input that triggers an API call. You debounce the query so you don't fire a request on every keystroke — only after the user pauses typing.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Debounce via <code>useEffect</code> + <code>setTimeout</code> + cleanup is a canonical custom-hook pattern. The <strong>cleanup is what makes it debounce</strong> — each new change cancels the previous pending update, so only the final value in a burst gets through.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 8 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 8 — Context Re-render Storm</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          This app uses a single <code>AppContext</code> holding <code>{ user, theme, cartCount }</code>. Whenever <code>cartCount</code> changes, <em>every</em> consumer re-renders — even components that only read <code>theme</code>. Why, and how do you fix it? Give at least two strategies.
+        </p>
+<pre><code><span class="kw">const</span> <span class="tp">AppContext</span> = <span class="fn">createContext</span>();
+
+&lt;<span class="tp">AppContext.Provider</span> <span class="tp">value</span>={{ user, theme, cartCount }}&gt;
+  &lt;<span class="tp">App</span> /&gt;
+&lt;/<span class="tp">AppContext.Provider</span>&gt;</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>Why:</strong> the provider passes a <em>brand-new object literal</em> on every render. Consumers compare the context value by reference — and <code>{user, theme, cartCount}</code> is a new object each time, so every consumer re-renders whenever the <em>provider itself</em> re-renders, even if the individual fields didn't change.
+            </p>
+            <p><strong>Fix 1 — memoize the value object:</strong></p>
+<pre><code><span class="kw">const</span> value = <span class="fn">useMemo</span>(
+  () =&gt; ({ user, theme, cartCount }),
+  [user, theme, cartCount]
+);
+&lt;<span class="tp">AppContext.Provider</span> <span class="tp">value</span>={value}&gt;</code></pre>
+            <p>Now the value keeps the same reference unless one of those fields actually changes.</p>
+            <p><strong>Fix 2 — split contexts by update frequency:</strong></p>
+<pre><code>&lt;<span class="tp">UserContext.Provider</span> <span class="tp">value</span>={user}&gt;        <span class="cm">// rarely changes</span>
+  &lt;<span class="tp">ThemeContext.Provider</span> <span class="tp">value</span>={theme}&gt;    <span class="cm">// rarely changes</span>
+    &lt;<span class="tp">CartContext.Provider</span> <span class="tp">value</span>={cartCount}&gt;  <span class="cm">// changes often</span>
+      &lt;<span class="tp">App</span> /&gt;
+    &lt;/<span class="tp">CartContext.Provider</span>&gt;
+  &lt;/<span class="tp">ThemeContext.Provider</span>&gt;
+&lt;/<span class="tp">UserContext.Provider</span>&gt;</code></pre>
+            <p>A component reading only <code>useContext(ThemeContext)</code> won't re-render when the cart changes.</p>
+            <p><strong>Fix 3 — use an external store</strong> (Zustand, Jotai, Redux) with <code>useSyncExternalStore</code>. These let a component subscribe to <em>a slice</em> of state and re-render only when that slice changes — the cleanest fix for high-frequency updates.</p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Context compares its value by reference. A new object literal every render defeats memoization and re-renders all consumers. For low-frequency data: memoize or split contexts. For high-frequency data: use an external store with slice subscriptions.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 9 -->
+    <div class="qa-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 9 — The Over-Memoized Component</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          A developer wraps a trivial addition in <code>useMemo</code>, "for performance". Does this help or hurt? Explain.
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">Total</span>({ a, b }) {
+  <span class="kw">const</span> sum = <span class="fn">useMemo</span>(() =&gt; a + b, [a, b]);
+  <span class="kw">return</span> &lt;<span class="tp">div</span>&gt;{sum}&lt;/<span class="tp">div</span>&gt;;
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>It hurts.</strong> The calculation <code>a + b</code> is essentially free — far cheaper than the memo machinery React runs on every render (creating the dependency array, comparing <code>a</code> and <code>b</code> by reference, and checking the cache). You've added overhead to "save" work that was never expensive.
+            </p>
+            <p>
+              <strong>Rule of thumb:</strong> <code>useMemo</code> earns its keep only when the computation is genuinely costly — sorting/filtering large arrays, heavy math, building large objects, or when the memoized <em>value</em> is consumed as a dependency by <code>useEffect</code> or passed as a prop to a memoized child (where identity matters).
+            </p>
+            <p><strong>The original, faster version:</strong></p>
+<pre><code><span class="kw">function</span> <span class="tp">Total</span>({ a, b }) {
+  <span class="kw">const</span> sum = a + b; <span class="cm">// just compute it</span>
+  <span class="kw">return</span> &lt;<span class="tp">div</span>&gt;{sum}&lt;/<span class="tp">div</span>&gt;;
+}</code></pre>
+            <p>
+              The react.dev guidance is explicit: <em>"You might not need an Effect / you might not need memo."</em> Reach for memoization after profiling shows a real bottleneck, not preemptively. The React Compiler (Lesson 9) is designed to remove this tax entirely by memoizing automatically where it helps.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Memoization isn't free — it trades computation for cache + comparison overhead. Only memoize when the saved work exceeds the memo's own cost, or when identity stability is required (deps / memoized children). Measure first.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 10 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 10 — Does the Boundary Catch It?</span>
+        <span class="puzzle-difficulty medium">medium</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          A component is wrapped in an error boundary. The user clicks a button whose handler throws. Does the boundary catch the error and show the fallback? Explain.
+        </p>
+<pre><code>&lt;<span class="tp">ErrorBoundary</span>&gt;
+  &lt;<span class="tp">form</span> <span class="tp">onSubmit</span>={(e) =&gt; {
+    e.<span class="fn">preventDefault</span>();
+    <span class="fn">saveToServer</span>(data); <span class="cm">// ← this throws</span>
+  }}&gt;
+    &lt;<span class="tp">button</span>&gt;Save&lt;/<span class="tp">button</span>&gt;
+  &lt;/<span class="tp">form</span>&gt;
+&lt;/<span class="tp">ErrorBoundary</span>&gt;</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>No.</strong> The boundary does <em>not</em> catch the error. The error propagates as an uncaught exception (and the app likely crashes or the global <code>window.onerror</code> fires). The fallback UI never shows.
+            </p>
+            <p>
+              <strong>Why:</strong> error boundaries catch errors thrown <em>during rendering, in lifecycle methods, and in constructors of child components</em>. They explicitly do <strong>NOT</strong> catch:
+            </p>
+            <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+              <li>Errors in <strong>event handlers</strong> (like <code>onSubmit</code>, <code>onClick</code>)</li>
+              <li>Errors in <strong>async code</strong> (<code>setTimeout</code>, <code>await</code>, promise rejections)</li>
+              <li>Errors in <strong>server-side rendering</strong></li>
+            </ul>
+            <p><strong>Fix — use try/catch in the handler:</strong></p>
+<pre><code>&lt;<span class="tp">form</span> <span class="tp">onSubmit</span>={<span class="kw">async</span> (e) =&gt; {
+  e.<span class="fn">preventDefault</span>();
+  <span class="kw">try</span> {
+    <span class="kw">await</span> <span class="fn">saveToServer</span>(data);
+  } <span class="kw">catch</span> (err) {
+    <span class="fn">setSubmitError</span>(err); <span class="cm">// show inline error UI</span>
+  }
+}}&gt;</code></pre>
+            <p>
+              Event-handler errors are a regular JS exception, not a React render error — handle them with plain <code>try/catch</code> and update state to show feedback. This is one of the most common misconceptions in React interviews.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Error boundaries are <strong>try/catch for the render phase only</strong> — not for event handlers, async code, or SSR. The mental model: if it happens <em>during</em> React's render/commit, the boundary catches it; if it happens in response to a user action or in a callback, use try/catch.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--              HARD PUZZLES (11–15)            -->
+  <!-- ============================================ -->
+  <div class="content-section">
+    <h2>🔴 Hard Puzzles</h2>
+
+    <!-- Puzzle 11 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 11 — Diagnose the Re-render Storm</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          A <code>&lt;Dashboard&gt;</code> holds <code>query</code> in state. Every keystroke re-renders <code>&lt;Sidebar&gt;</code>, <code>&lt;Header&gt;</code>, and a heavy <code>&lt;ResultsTable&gt;</code> — even though only the table cares about <code>query</code>. Identify <em>all</em> the causes and prescribe fixes.
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">Dashboard</span>() {
+  <span class="kw">const</span> [query, setQuery] = <span class="fn">useState</span>(<span class="st">""</span>);
+  <span class="kw">return</span> (
+    &lt;&gt;
+      &lt;<span class="tp">Header</span> <span class="tp">onSearch</span>={setQuery} /&gt;
+      &lt;<span class="tp">Sidebar</span> /&gt;
+      &lt;<span class="tp">ResultsTable</span> <span class="tp">query</span>={query} <span class="tp">filter</span>={(item) =&gt; item.<span class="fn">includes</span>(query)} /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p><strong>Causes (there are several):</strong></p>
+            <ol style="margin-left: var(--space-lg); font-size: 0.95rem; line-height: 1.8;">
+              <li><strong>Default behavior:</strong> when <code>Dashboard</code> re-renders, React re-renders <em>all</em> children by default — including <code>&lt;Header&gt;</code> and <code>&lt;Sidebar&gt;</code> that don't use <code>query</code>.</li>
+              <li><strong>New <code>filter</code> function each render:</strong> the inline arrow <code>(item) =&gt; item.includes(query)</code> is recreated every render — even if <code>ResultsTable</code> were memoized, this new reference would defeat the memo.</li>
+              <li><strong>State location:</strong> <code>query</code> lives high in the tree, so its updates ripple down everything below.</li>
+            </ol>
+            <p><strong>Fixes, in order of impact:</strong></p>
+<pre><code><span class="cm">// 1. Memoize children that don't depend on query:</span>
+<span class="kw">const</span> <span class="tp">Sidebar</span> = <span class="tp">React</span>.<span class="fn">memo</span>(<span class="kw">function</span> <span class="tp">Sidebar</span>() { ... });
+<span class="kw">const</span> <span class="tp">Header</span> = <span class="tp">React</span>.<span class="fn">memo</span>(<span class="kw">function</span> <span class="tp">Header</span>({ onSearch }) { ... });
+
+<span class="cm">// 2. Stabilize onSearch so Header's memo actually skips:</span>
+<span class="kw">const</span> handleSearch = <span class="fn">useCallback</span>((q) =&gt; <span class="fn">setQuery</span>(q), []);
+
+<span class="cm">// 3. Memoize ResultsTable AND give it a stable filter:</span>
+<span class="kw">const</span> <span class="tp">ResultsTable</span> = <span class="tp">React</span>.<span class="fn">memo</span>(<span class="kw">function</span> <span class="tp">ResultsTable</span>({ query }) {
+  <span class="kw">const</span> rows = <span class="fn">useMemo</span>(
+    () =&gt; data.<span class="fn">filter</span>(item =&gt; item.<span class="fn">includes</span>(query)),
+    [data, query]
+  );
+  <span class="cm">// ... render rows</span>
+});</code></pre>
+            <p>
+              <strong>Bigger-picture fixes:</strong> move the <code>query</code> state <em>down</em> into a <code>&lt;SearchSection&gt;</code> that owns both the input and the table, so <code>Sidebar</code>/<code>Header</code> never see it. Or use <code>useDeferredValue</code>/<code>useTransition</code> (Lesson 8) to make the table update non-urgent. The deepest lesson: <strong>profile first</strong> — the React DevTools Profiler shows you exactly which components waste renders and why.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Re-render storms usually have three intertwined causes: default child re-rendering, unstable prop references (inline functions/objects), and state held too high. The fix stack: <code>React.memo</code> + stable props (useCallback/useMemo) + state colocation + concurrent APIs for the expensive parts.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 12 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 12 — Design a Form Architecture</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          You're building a multi-section form with 20+ fields, cross-field validation (e.g. "endDate after startDate"), dynamic fields (add/remove rows), and async submit. How do you structure the state — <code>useState</code> vs <code>useReducer</code>? Controlled vs uncontrolled? Walk through the decision.
+        </p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p><strong>State container: <code>useReducer</code> for the form values.</strong></p>
+            <p>
+              With 20+ interdependent fields, separate <code>useState</code> calls become unmanageable, and cross-field validation is awkward. A single reducer holding <code>{ values, errors, touched, isSubmitting }</code> keeps related state together and makes transitions explicit and testable:
+            </p>
+<pre><code><span class="kw">const</span> initial = {
+  <span class="tp">values</span>: { ... },
+  <span class="tp">errors</span>: {},
+  <span class="tp">touched</span>: {},
+  <span class="tp">isSubmitting</span>: <span class="kw">false</span>,
+};
+
+<span class="kw">function</span> <span class="fn">formReducer</span>(state, action) {
+  <span class="kw">switch</span> (action.type) {
+    <span class="kw">case</span> <span class="st">"SET_FIELD"</span>:
+      <span class="kw">return</span> { ...state, <span class="tp">values</span>: { ...state.values, [action.field]: action.value } };
+    <span class="kw">case</span> <span class="st">"SET_ERRORS"</span>:
+      <span class="kw">return</span> { ...state, <span class="tp">errors</span>: action.errors };
+    <span class="kw">case</span> <span class="st">"ADD_ROW"</span>:   <span class="cm">// dynamic fields</span>
+    <span class="kw">case</span> <span class="st">"REMOVE_ROW"</span>:
+    <span class="kw">case</span> <span class="st">"SUBMIT_START"</span>:
+    <span class="kw">case</span> <span class="st">"SUBMIT_DONE"</span>:
+    <span class="kw">default</span>: <span class="kw">return</span> state;
+  }
+}</code></pre>
+            <p><strong>Controlled vs uncontrolled — split by need:</strong></p>
+            <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+              <li><strong>Controlled</strong> for fields needing live validation, formatting (phone, currency), or conditional UI (show/hide based on another field). Most fields.</li>
+              <li><strong>Uncontrolled</strong> for large free-text areas where every-keystroke re-renders would be costly, or when integrating a non-React widget (a date picker from jQuery). Read on submit.</li>
+            </ul>
+            <p><strong>Validation strategy:</strong> validate on blur (per field) and on submit (whole form). Don't validate on every keystroke — it's annoying and slow. Keep the validator pure and outside the reducer so it's testable.</p>
+            <p><strong>Pragmatic note:</strong> for production, reach for <strong>React Hook Form</strong> + <strong>Zod</strong>. RHF uses uncontrolled inputs by default (fewer re-renders) with controlled-style validation, and Zod gives you a single schema that drives both runtime validation and TypeScript types. The architecture above is what those libraries implement for you.</p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Complex forms → <code>useReducer</code> (related state + explicit transitions + testable logic). Mix controlled (live validation) and uncontrolled (heavy/legacy) inputs. Validate on blur + submit, not every keystroke. In production, React Hook Form + Zod encode these decisions for you.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 13 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 13 — Responsive Search with Transitions</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          A search box filters 10,000 items. Without optimization, every keystroke blocks the main thread and typing feels laggy. Implement it with <strong>both</strong> <code>useTransition</code> and <code>useDeferredValue</code>, and explain when you'd pick each.
+        </p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p><strong>Approach A — <code>useTransition</code> (you control the update site):</strong></p>
+<pre><code><span class="kw">function</span> <span class="tp">Search</span>() {
+  <span class="kw">const</span> [query, setQuery] = <span class="fn">useState</span>(<span class="st">""</span>);
+  <span class="kw">const</span> [results, setResults] = <span class="fn">useState</span>(allItems);
+  <span class="kw">const</span> [isPending, startTransition] = <span class="fn">useTransition</span>();
+
+  <span class="kw">function</span> <span class="fn">onChange</span>(e) {
+    <span class="kw">const</span> q = e.target.value;
+    <span class="fn">setQuery</span>(q);  <span class="cm">// urgent — input updates instantly</span>
+    <span class="fn">startTransition</span>(() =&gt; {
+      <span class="fn">setResults</span>(<span class="fn">heavyFilter</span>(allItems, q)); <span class="cm">// non-urgent</span>
+    });
+  }
+
+  <span class="kw">return</span> (
+    &lt;&gt;
+      &lt;<span class="tp">input</span> <span class="tp">value</span>={query} <span class="tp">onChange</span>={onChange} /&gt;
+      {isPending &amp;&amp; &lt;<span class="tp">span</span>&gt;Filtering…&lt;/<span class="tp">span</span>&gt;}
+      &lt;<span class="tp">List</span> <span class="tp">items</span>={results} /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+            <p><strong>Approach B — <code>useDeferredValue</code> (the value comes from elsewhere, e.g. props):</strong></p>
+<pre><code><span class="kw">function</span> <span class="tp">Results</span>({ query }) {  <span class="cm">// query is a prop</span>
+  <span class="kw">const</span> deferredQuery = <span class="fn">useDeferredValue</span>(query);
+  <span class="kw">const</span> results = <span class="fn">useMemo</span>(
+    () =&gt; <span class="fn">heavyFilter</span>(allItems, deferredQuery),
+    [deferredQuery]
+  );
+  <span class="kw">return</span> &lt;<span class="tp">List</span> <span class="tp">items</span>={results} /&gt;;
+}</code></pre>
+            <p>
+              <strong>How they keep typing responsive:</strong> the input's <code>query</code> update is urgent and renders immediately. The expensive list update is marked low-priority; React can interrupt it to handle the next keystroke, discarding stale renders. The user sees smooth typing; the list catches up between keystrokes.
+            </p>
+            <p><strong>When to pick which:</strong></p>
+            <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+              <li><strong><code>useTransition</code></strong> when you control where the state is set — you wrap the <code>setResults</code> call and get <code>isPending</code> for a loading indicator.</li>
+              <li><strong><code>useDeferredValue</code></strong> when the value arrives from outside (props, a library you don't control) and you can't wrap the setter. It's the value-level equivalent.</li>
+            </ul>
+            <p>Both rely on the same Fiber scheduler under the hood — they're priorities, not debounce timers.</p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              <code>useTransition</code> (update-level) and <code>useDeferredValue</code> (value-level) are two faces of concurrent rendering: mark expensive work low-priority so urgent input stays responsive. Pick by whether you control the setter or just receive the value.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 14 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 14 — Suspense + Error Boundary + Streaming</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          A page has a header (instant), a sidebar (instant), and three independent data-driven panels that each fetch on mount. Design the Suspense and Error Boundary structure so that: panels load independently, one failing panel doesn't blank the page, and the header/sidebar show immediately.
+        </p>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p>
+              <strong>Key principles:</strong> (1) wrap each independent async boundary in its <em>own</em> Suspense + Error Boundary so they don't block each other; (2) keep the always-present UI (header, sidebar) outside any Suspense; (3) nest error boundary <em>inside</em> Suspense so the fallback replaces just that panel.
+            </p>
+<pre><code>&lt;<span class="tp">Layout</span>&gt;
+  &lt;<span class="tp">Header</span> /&gt;      <span class="cm">// instant, outside any Suspense</span>
+
+  &lt;<span class="tp">ErrorBoundary</span> <span class="tp">fallback</span>={&lt;<span class="tp">PanelError</span> /&gt;}&gt;
+    &lt;<span class="tp">Suspense</span> <span class="tp">fallback</span>={&lt;<span class="tp">PanelSkeleton</span> /&gt;}&gt;
+      &lt;<span class="tp">ProfilePanel</span> /&gt;   <span class="cm">// suspends while fetching</span>
+    &lt;/<span class="tp">Suspense</span>&gt;
+  &lt;/<span class="tp">ErrorBoundary</span>&gt;
+
+  &lt;<span class="tp">ErrorBoundary</span> <span class="tp">fallback</span>={&lt;<span class="tp">PanelError</span> /&gt;}&gt;
+    &lt;<span class="tp">Suspense</span> <span class="tp">fallback</span>={&lt;<span class="tp">PanelSkeleton</span> /&gt;}&gt;
+      &lt;<span class="tp">ActivityPanel</span> /&gt;
+    &lt;/<span class="tp">Suspense</span>&gt;
+  &lt;/<span class="tp">ErrorBoundary</span>&gt;
+
+  &lt;<span class="tp">ErrorBoundary</span> <span class="tp">fallback</span>={&lt;<span class="tp">PanelError</span> /&gt;}&gt;
+    &lt;<span class="tp">Suspense</span> <span class="tp">fallback</span>={&lt;<span class="tp">PanelSkeleton</span> /&gt;}&gt;
+      &lt;<span class="tp">StatsPanel</span> /&gt;
+    &lt;/<span class="tp">Suspense</span>&gt;
+  &lt;/<span class="tp">ErrorBoundary</span>&gt;
+&lt;/<span class="tp">Layout</span>&gt;</code></pre>
+            <p>
+              <strong>Why this structure works:</strong>
+            </p>
+            <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+              <li><strong>Independent loading:</strong> each <code>&lt;Suspense&gt;</code> isolates its panel — Profile can render while Activity is still loading, without waiting.</li>
+              <li><strong>Independent failure:</strong> if StatsPanel's fetch rejects, only that panel's ErrorBoundary catches it and shows <code>&lt;PanelError&gt;</code>; the rest of the page keeps working.</li>
+              <li><strong>Streaming (SSR):</strong> with React's streaming server renderer, the server flushes the header/sidebar HTML immediately, then streams each panel's HTML as its data resolves — the user sees content progressively rather than staring at a blank page.</li>
+            </ul>
+            <p>
+              <strong>Nesting order matters:</strong> Error Boundary outside Suspense means an error in the fallback could escape upward; the conventional order is <code>&lt;ErrorBoundary&gt;&lt;Suspense&gt;&lt;Component/&gt;&lt;/Suspense&gt;&lt;/ErrorBoundary&gt;</code> so the boundary catches errors from both the component and its fallback.
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              Compose <strong>one Error Boundary + one Suspense per independent async unit</strong>. Isolation is the goal: each panel loads and fails on its own, and the shell renders immediately. On the server, this enables streaming — flush the shell, stream panels as they resolve.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Puzzle 15 -->
+    <div class="puzzle-card">
+      <div class="puzzle-header">
+        <span class="puzzle-title">Puzzle 15 — The <code>use(promise)</code> Deep Dive</span>
+        <span class="puzzle-difficulty hard">hard</span>
+      </div>
+      <div class="puzzle-body">
+        <p class="puzzle-desc">
+          This React 19 component reads a promise with <code>use</code>. Three questions: (a) How is this different from fetching in <code>useEffect</code> + <code>useState</code>? (b) Why is there no dependency array? (c) How does it interact with Suspense?
+        </p>
+<pre><code><span class="kw">function</span> <span class="tp">Profile</span>({ userPromise }) {
+  <span class="kw">const</span> user = <span class="fn">use</span>(userPromise);
+  <span class="kw">return</span> &lt;<span class="tp">h1</span>&gt;Hello, {user.name}&lt;/<span class="tp">h1</span>&gt;;
+}
+
+<span class="cm">// Parent creates the promise and passes it in:</span>
+&lt;<span class="tp">Suspense</span> <span class="tp">fallback</span>={&lt;<span class="tp">Spinner</span> /&gt;}&gt;
+  &lt;<span class="tp">Profile</span> <span class="tp">userPromise</span>={<span class="fn">fetchUser</span>(id)} /&gt;
+&lt;/<span class="tp">Suspense</span>&gt;</code></pre>
+        <button class="reveal-btn" onclick="toggleAnswer(this)">
+          <span class="icon">▼</span> Reveal Solution
+        </button>
+        <div class="qa-answer">
+          <div class="answer-content">
+            <p><strong>(a) Different from useEffect + useState:</strong> the classic pattern is imperative and side-effect-based — you fetch in an effect, store the result in state, and manage loading/error flags yourself:</p>
+<pre><code><span class="cm">// Classic: effect + state</span>
+<span class="kw">function</span> <span class="tp">Profile</span>({ id }) {
+  <span class="kw">const</span> [user, setUser] = <span class="fn">useState</span>(<span class="kw">null</span>);
+  <span class="fn">useEffect</span>(() =&gt; {
+    <span class="fn">fetchUser</span>(id).<span class="fn">then</span>(setUser);
+  }, [id]);
+  <span class="kw">if</span> (!user) <span class="kw">return</span> &lt;<span class="tp">Spinner</span> /&gt;;
+  <span class="kw">return</span> &lt;<span class="tp">h1</span>&gt;{user.name}&lt;/<span class="tp">h1</span>&gt;;
+}</code></pre>
+            <p>
+              With <code>use</code>, fetching is <strong>part of the render</strong>. The component reads the value synchronously (from React's perspective) and React handles the loading state via Suspense. No manual <code>loading</code> state, no effect, no race-condition cleanup. The data dependency is expressed in the component tree, not bolted on.
+            </p>
+            <p><strong>(b) No dependency array:</strong> <code>use</code> isn't synchronizing with anything — it's reading a <em>specific resource instance</em> you hand it. Each render gets the promise as a prop (or creates a memoized one); <code>use</code> just resolves that exact promise. There's nothing to "re-run when X changes" because the caller controls when a new promise arrives. (Contrast with <code>useEffect</code>, which subscribes to a system and must declare what triggers resubscription.)</p>
+            <p><strong>(c) Suspense interaction:</strong> when <code>use(promise)</code> is called on an unresolved promise, the component <em>suspends</em> — React throws a special promise that the nearest <code>&lt;Suspense&gt;</code> boundary catches, showing its <code>fallback</code>. When the promise resolves, React re-renders the suspended subtree with the value. Errors in the promise are caught by the nearest Error Boundary. This is the same mechanism <code>React.lazy</code> uses — promises as first-class render-time values.</p>
+            <p>
+              <strong>The bigger picture:</strong> <code>use</code> is the client-side hook into React's new data model, where Server Components (or a client cache) hand promises to components and the component tree declaratively expresses data dependencies. It's a fundamental shift from "fetch in effects" to "read resources during render."
+            </p>
+            <div class="tip">
+              <span class="tip-label">💡 Key Insight:</span>
+              <code>use(promise)</code> makes data fetching <strong>part of the render</strong> rather than a side effect. No deps array because it reads a specific instance, not a subscription. It suspends the component until resolution, with Suspense + Error Boundary handling loading and failure declaratively. This is the React 19 data model.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!--                SCORE SECTION                 -->
+  <!-- ============================================ -->
+  <div class="quiz-section">
+    <h2>🏆 Your Progress</h2>
+    <div id="finalScore" style="text-align: center; padding: var(--space-lg);">
+      <p style="font-size: 1.1rem; font-weight: 600; color: var(--text);">
+        You've attempted <span id="attemptCount" style="color: var(--primary); font-size: 1.3rem;">0</span> of <span style="color: var(--primary); font-size: 1.3rem;">15</span> puzzles.
+      </p>
+      <p id="encouragement" style="margin-top: var(--space-md); font-size: 0.95rem; color: var(--text-secondary);">
+        Click "Reveal Solution" on each puzzle to track your progress.
+      </p>
+    </div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Stuck on a puzzle? Want a deeper explanation of re-render storms, concurrent mode, or the <code>use</code> hook? Ask your AI teacher — no question is too advanced.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0009-ecosystem-ssr-react19.html" class="secondary">← Previous: Ecosystem, SSR &amp; React 19</a>
+    <a href="../reference/react-hooks-cheatsheet.html">Hooks Cheatsheet →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // Reveal toggle — same pattern as Q&A cards
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Solution';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Solution';
+        updateProgress();
+      }
+    }
+
+    // Progress counter
+    let revealedCount = 0;
+
+    function updateProgress() {
+      revealedCount++;
+      const counter = document.getElementById('progressCounter');
+      const attemptEl = document.getElementById('attemptCount');
+      const encouragement = document.getElementById('encouragement');
+
+      counter.textContent = `Puzzles attempted: ${revealedCount} of 15`;
+      attemptEl.textContent = revealedCount;
+
+      if (revealedCount === 15) {
+        encouragement.textContent = "🎉 You've completed all 15 puzzles! Congratulations on finishing the React course!";
+        encouragement.style.color = 'var(--success)';
+        encouragement.style.fontWeight = '700';
+      } else if (revealedCount >= 10) {
+        encouragement.textContent = "Almost there! You're in the home stretch.";
+      } else if (revealedCount >= 5) {
+        encouragement.textContent = "Great progress! Keep going — the hard puzzles are worth it.";
+      }
+    }
+  </script>
+
+</body>
+</html>

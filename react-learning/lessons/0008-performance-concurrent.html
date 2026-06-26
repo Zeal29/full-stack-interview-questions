@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8 — Performance &amp; Concurrent React</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 8 of 10</span>
+    <h1>Performance &amp; Concurrent React</h1>
+    <p class="subtitle">useLayoutEffect, reconciliation, Suspense, Fiber, batching, and the transition APIs — the senior-interview differentiator</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Distinguish <code>useEffect</code> from <code>useLayoutEffect</code> and know when each fires</li>
+      <li>Explain reconciliation rules and the Fiber engine</li>
+      <li>Use <code>Suspense</code> + <code>lazy</code> for code splitting</li>
+      <li>Explain React 18 batching and use transitions/deferred values to keep UI responsive</li>
+      <li>Bridge external stores safely with <code>useSyncExternalStore</code></li>
+    </ul>
+  </div>
+
+  <!-- Section: The senior tier -->
+  <div class="content-section">
+    <h2>The Concurrent Renderer</h2>
+    <p>
+      This is where interviews separate juniors from seniors. React 16 rewrote the engine as <strong>Fiber</strong> — a unit-of-work architecture that can <em>pause, resume, and prioritize</em> rendering. React 18 built on Fiber to deliver <strong>concurrent rendering</strong>: React can interrupt a slow render to handle an urgent update (a keystroke), then resume the slow work later. The user-facing APIs for this are <code>startTransition</code>, <code>useTransition</code>, and <code>useDeferredValue</code>.
+    </p>
+    <p>
+      Two performance primitives underpin everything else: <strong>reconciliation</strong> (the diffing algorithm — "what changed?") and <strong>batching</strong> (collapsing multiple state updates into one re-render). Get these mental models right and you can reason about any performance question from first principles.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q21 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What is the difference between <code>useEffect</code> and <code>useLayoutEffect</code>?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <strong>Timing.</strong> <code>useEffect</code> runs <em>asynchronously, after the browser paints</em> — non-blocking, so it's the right default for almost everything (fetches, subscriptions, analytics). <code>useLayoutEffect</code> runs <em>synchronously, before the browser paints</em> — it blocks the paint, so the user never sees the unmodified layout.
+          </p>
+<pre><code><span class="cm">// useLayoutEffect: measure then fix layout before paint (no flicker)</span>
+<span class="fn">useLayoutEffect</span>(() =&gt; {
+  <span class="kw">const</span> h = ref.current.<span class="fn">getBoundingClientRect</span>().height;
+  <span class="fn">setTooltipPos</span>(<span class="fn">computePos</span>(h));
+}, [dep]);</code></pre>
+          <p>
+            Use <code>useLayoutEffect</code> only when you must read DOM layout and synchronously mutate state to avoid a visible flicker (tooltips, measuring before animating). Reach for it <em>after</em> <code>useEffect</code> proves insufficient. Server-side, neither runs — but <code>useLayoutEffect</code> warns; use <code>useIsomorphicLayoutEffect</code> if you SSR.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Use <code>useEffect</code> 99% of the time. Use <code>useLayoutEffect</code> only to modify DOM <em>before</em> the user sees it (prevent flicker on measurement-driven layout).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q22 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What is reconciliation in React?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Reconciliation is React's <strong>algorithm for diffing the old and new virtual DOM trees to decide the minimum set of real-DOM mutations</strong>. It runs three rules:
+          </p>
+          <ol style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+            <li><strong>Different element types</strong> → tear down the old subtree and build a new one (e.g. <code>&lt;a&gt;</code> → <code>&lt;div&gt;</code> destroys everything).</li>
+            <li><strong>Same element type</strong> → keep the DOM node, update only changed props/attributes recursively.</li>
+            <li><strong>Children</strong> → matched by <code>key</code> across renders (this is why stable keys matter — Lesson 3).</li>
+          </ol>
+<pre><code><span class="cm">// Type change → full rebuild</span>
+{isLink ? &lt;<span class="tp">a</span> /&gt; : &lt;<span class="tp">div</span> /&gt;}
+
+<span class="cm">// Same type → update props in place</span>
+&lt;<span class="tp">Profile</span> <span class="tp">user</span>={u1} /&gt;
+&lt;<span class="tp">Profile</span> <span class="tp">user</span>={u2} /&gt;</code></pre>
+          <p>
+            The heuristic is O(n) rather than the theoretical O(n³) of a full tree diff, which is what makes it fast enough. This is why you should <strong>not</strong> swap component types to "reset state" casually — it forces a full subtree rebuild.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Reconciliation = <strong>"what changed?"</strong> Different type = nuke and rebuild. Same type = update in place. Keys = identity for list children.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q31 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What are Suspense and lazy loading?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>React.lazy</code> + <code>Suspense</code> enable <strong>code splitting</strong>: load a component's code only when it's first rendered, shrinking the initial JS bundle. <code>Suspense</code> shows a <code>fallback</code> (spinner, skeleton) while the lazy component's chunk loads.
+          </p>
+<pre><code><span class="kw">const</span> <span class="tp">HeavyChart</span> = <span class="tp">React</span>.<span class="fn">lazy</span>(() =&gt; <span class="kw">import</span>(<span class="st">"./HeavyChart"</span>));
+
+&lt;<span class="tp">Suspense</span> <span class="tp">fallback</span>={&lt;<span class="tp">Spinner</span> /&gt;}&gt;
+  &lt;<span class="tp">HeavyChart</span> /&gt;
+&lt;/<span class="tp">Suspense</span>&gt;</code></pre>
+          <p>
+            Place Suspense boundaries thoughtfully: too high and one slow chunk blocks a whole page; too low and you get janky partial loads. Suspense also integrates with data fetching (via frameworks like Next.js or libraries like Relay) — a component that suspends triggers the nearest <code>Suspense</code> fallback.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>lazy</code> + <code>Suspense</code> = <strong>load on demand</strong>. Split large routes/components. Always provide a <code>fallback</code> — without it, React throws if the chunk isn't ready.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q32 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">4</span><span>What is the React Fiber architecture?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Fiber is React's <strong>reconciliation engine, rewritten in React 16</strong>. Before Fiber, React rendered synchronously and couldn't be interrupted — a huge update would block the main thread. Fiber breaks rendering work into <strong>units called "fibers"</strong>, each linked into a tree, that can be paused, resumed, and prioritized.
+          </p>
+          <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+            <li><strong>Incremental rendering</strong> — work splits into chunks; React can yield to the browser between them.</li>
+            <li><strong>Priority-based updates</strong> — user input (urgent) preempts data fetching (non-urgent).</li>
+            <li><strong>Foundation for concurrent features</strong> — <code>startTransition</code>, <code>useDeferredValue</code>, server components.</li>
+          </ul>
+          <p>
+            You won't write Fiber code directly, but knowing it exists explains <em>why</em> transitions and deferred values work: they're priorities handed to the Fiber scheduler, not debounce tricks.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Fiber = React's <strong>new engine</strong> (since v16). Breaks work into interruptible units, supports priorities. The foundation under all concurrent features.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q41 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">5</span><span>How does React's batching work?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Batching collapses <strong>multiple state updates into a single re-render</strong>. Three <code>setState</code> calls in one handler produce one render, not three. This avoids wasteful intermediate paints and is the reason the functional-updater pattern matters (Lesson 2): within a batched update, each call sees the same starting state.
+          </p>
+<pre><code><span class="cm">// React 18+ — ALL of these batch into ONE re-render</span>
+<span class="kw">function</span> <span class="fn">handleClick</span>() {
+  <span class="fn">setCount</span>(<span class="nm">1</span>);
+  <span class="fn">setName</span>(<span class="st">"Ali"</span>);
+  <span class="fn">setActive</span>(<span class="kw">true</span>);
+  <span class="cm">// → single render here</span>
+}
+
+<span class="cm">// Batches everywhere: promises, timeouts, native events too</span>
+<span class="fn">setTimeout</span>(() =&gt; { <span class="fn">setA</span>(<span class="nm">1</span>); <span class="fn">setB</span>(<span class="nm">2</span>); }, <span class="nm">100</span>); <span class="cm">// one render</span></code></pre>
+          <p>
+            Before React 18, only updates inside React event handlers were batched — updates in <code>setTimeout</code>, promises, or native listeners each caused a separate render (a common perf footgun). React 18's <strong>automatic batching</strong> batches everywhere. The escape hatch is <code>flushSync</code> (later card), which forces an immediate, synchronous update.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            React 18 = <strong>automatic batching everywhere</strong>. Multiple <code>setState</code> calls = one render. Use <code>flushSync</code> to opt out only when you genuinely need synchronous DOM update.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q33 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">6</span><span>What is <code>startTransition</code>?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>startTransition</code> marks a state update as <strong>low-priority (non-urgent)</strong>. Urgent updates (typing in an input, clicks) keep the UI responsive; the transition update is deferred and can be interrupted by a newer urgent update.
+          </p>
+<pre><code><span class="kw">const</span> [search, setSearch] = <span class="fn">useState</span>(<span class="st">""</span>);
+<span class="kw">const</span> [filter, setFilter] = <span class="fn">useState</span>(<span class="st">""</span>);
+
+<span class="kw">function</span> <span class="fn">handleChange</span>(e) {
+  <span class="fn">setSearch</span>(e.target.value);        <span class="cm">// urgent — input stays snappy</span>
+  <span class="fn">startTransition</span>(() =&gt; {
+    <span class="fn">setFilter</span>(e.target.value);      <span class="cm">// non-urgent — expensive list filter</span>
+  });
+}</code></pre>
+          <p>
+            Classic use case: a search box filtering thousands of rows. Without a transition, every keystroke blocks on the expensive filter; with it, typing stays instant and the list catches up. Note: <code>startTransition</code> doesn't give you a pending flag — for that, use <code>useTransition</code> (next card).
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>startTransition</code> = <strong>"this update can wait."</strong> Split urgent (input) from non-urgent (filtering) updates to keep the UI responsive.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q34 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">7</span><span>What is <code>useDeferredValue</code>?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useDeferredValue</code> returns a <strong>deferred copy of a value that lags behind the urgent one</strong>. The deferred value updates when the browser is idle, so expensive work that depends on it doesn't block urgent updates.
+          </p>
+<pre><code><span class="kw">const</span> [search, setSearch] = <span class="fn">useState</span>(<span class="st">""</span>);
+<span class="kw">const</span> deferredSearch = <span class="fn">useDeferredValue</span>(search);
+
+<span class="cm">// Heavy list uses the deferred value:</span>
+<span class="kw">const</span> results = <span class="fn">useMemo</span>(
+  () =&gt; <span class="fn">heavyFilter</span>(allItems, deferredSearch),
+  [allItems, deferredSearch]
+);</code></pre>
+          <p>
+            It's the value-level counterpart to <code>startTransition</code> (which is update-level). Reach for <code>useDeferredValue</code> when you don't control where the value is set (it comes from props or a library) — <code>startTransition</code> when you do.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useDeferredValue</code> = <strong>"use the old value until you're free."</strong> Like debouncing, but driven by browser availability rather than a fixed time delay.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q36 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">8</span><span>What is the <code>useTransition</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useTransition</code> is the hook version of <code>startTransition</code>. It returns a tuple <code>[isPending, startTransition]</code>: wrap your expensive update in <code>startTransition</code>, and use <code>isPending</code> to show a loading indicator while the transition is processing.
+          </p>
+<pre><code><span class="kw">const</span> [isPending, startTransition] = <span class="fn">useTransition</span>();
+
+<span class="kw">function</span> <span class="fn">onTabChange</span>(id) {
+  <span class="fn">startTransition</span>(() =&gt; {
+    <span class="fn">setActiveTab</span>(id); <span class="cm">// expensive re-render of tab content</span>
+  });
+}
+
+<span class="kw">return</span> (
+  &lt;<span class="tp">button</span> <span class="tp">onClick</span>={onTabChange}&gt;
+    {isPending ? <span class="st">"Loading…"</span> : <span class="st">"Switch tab"</span>}
+  &lt;/<span class="tp">button</span>&gt;
+);</code></pre>
+          <p>
+            Prefer <code>useTransition</code> over bare <code>startTransition</code> whenever you want a pending flag. The pending state lets you give the user feedback (dimming, spinner) without blocking their input.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useTransition</code> = <strong>non-urgent update + a loading flag.</strong> <code>isPending</code> tells you if the transition is still processing — use it for inline spinners.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q37 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">9</span><span>What is the <code>useSyncExternalStore</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useSyncExternalStore</code> is the <strong>safe way to subscribe a component to a non-React store</strong> (Redux, Zustand, browser APIs like <code>matchMedia</code>, online status) under concurrent rendering. It takes a subscribe function, a snapshot function, and an optional server snapshot.
+          </p>
+<pre><code><span class="kw">const</span> isOnline = <span class="fn">useSyncExternalStore</span>(
+  (cb) =&gt; {            <span class="cm">// subscribe</span>
+    <span class="tp">window</span>.<span class="fn">addEventListener</span>(<span class="st">"online"</span>, cb);
+    <span class="kw">return</span> () =&gt; <span class="tp">window</span>.<span class="fn">removeEventListener</span>(<span class="st">"online"</span>, cb);
+  },
+  () =&gt; <span class="tp">navigator</span>.onLine, <span class="cm">// getSnapshot (client)</span>
+  () =&gt; <span class="kw">true</span>               <span class="cm">// getServerSnapshot</span>
+);</code></pre>
+          <p>
+            It exists to prevent <strong>"tearing"</strong> — where concurrent rendering would let different parts of the UI read different snapshots of an external store within a single render pass. Before React 18, libraries hacked this with <code>useMutableSource</code>; now there's a single blessed API. As an app developer you rarely write it yourself — your state library does.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useSyncExternalStore</code> = <strong>safe external-data bridge</strong>. Required when connecting non-React state to React in concurrent mode — prevents tearing.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q38 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">10</span><span>What is <code>flushSync</code>?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>flushSync</code> <strong>forces React to flush a state update to the DOM synchronously</strong>, overriding automatic batching. After <code>flushSync(fn)</code> returns, the DOM is guaranteed to reflect the updates inside <code>fn</code>.
+          </p>
+<pre><code><span class="kw">import</span> { flushSync } <span class="kw">from</span> <span class="st">"react-dom"</span>;
+
+<span class="fn">flushSync</span>(() =&gt; {
+  <span class="fn">setScrollTarget</span>(id);
+});
+<span class="cm">// DOM is updated here — safe to measure / scroll</span>
+element.<span class="fn">scrollIntoView</span>();</code></pre>
+          <p>
+            Use it sparingly — it defeats batching, which is usually a perf loss. Legit cases: you must measure or scroll the DOM immediately after an update; integrating with non-React code that needs the DOM in a known state; flushing before showing a "beforeunload" prompt. If you find yourself reaching for it often, you've usually mis-modelled something.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>flushSync</code> = <strong>"update NOW, no batching."</strong> Escape hatch. Use only when you absolutely need synchronous DOM updates (measure/scroll/imperative integration).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. When does <code>useLayoutEffect</code> fire relative to <code>useEffect</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> After <code>useEffect</code>, once the browser is idle</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Before <code>useEffect</code> — synchronously, before the browser paints</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> They always fire at the same time</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> <code>useLayoutEffect</code> never fires in production</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>useLayoutEffect</code> runs synchronously before paint (use it to avoid flicker); <code>useEffect</code> runs asynchronously after paint.</div>
+      <div class="quiz-feedback incorrect">❌ <code>useLayoutEffect</code> runs synchronously <em>before</em> the browser paints; <code>useEffect</code> runs <em>after</em>. Use the layout version only to prevent visible flicker.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">2. In React 18, what happens to three <code>setState</code> calls inside a <code>setTimeout</code>?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> They batch into one re-render (automatic batching)</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> They cause three separate re-renders</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> They're ignored — state can't change in timeouts</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> They throw a runtime error</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! React 18's automatic batching applies everywhere — timeouts, promises, native handlers — not just React events.</div>
+      <div class="quiz-feedback incorrect">❌ React 18 batches updates <em>everywhere</em> (timeouts, promises, native events), collapsing them into one render. Pre-18, these would have caused three renders.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">3. What problem does <code>useSyncExternalStore</code> solve?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> It memoizes external API responses</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> It replaces <code>useEffect</code> for all data fetching</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Tearing — different parts of the UI seeing different snapshots of an external store during concurrent rendering</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> It forces synchronous re-renders</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! It's the concurrent-safe bridge to non-React stores — guarantees a consistent snapshot across the render, preventing tearing.</div>
+      <div class="quiz-feedback incorrect">❌ Its job is to prevent tearing: under concurrent rendering, different subtrees could otherwise read different snapshots of an external store. <code>useSyncExternalStore</code> makes that impossible.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>This is the senior-tier material. If reconciliation, Fiber, or transitions feel fuzzy, ask your AI teacher — nailing these is what separates strong candidates.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0007-custom-hooks-advanced-apis.html" class="secondary">← Previous: Custom Hooks &amp; Advanced APIs</a>
+    <a href="0009-ecosystem-ssr-react19.html">Next: Ecosystem, SSR &amp; React 19 →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

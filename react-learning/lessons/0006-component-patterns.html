@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Component Patterns</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 6 of 10</span>
+    <h1>Component Patterns</h1>
+    <p class="subtitle">HOCs, render props, error boundaries, portals, and compound components — the patterns interviewers love</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Explain HOCs and render props and why hooks largely replaced them</li>
+      <li>Implement an error boundary (and know it must be a class)</li>
+      <li>Use portals to render outside the parent DOM tree</li>
+      <li>Build compound components that share state implicitly via context</li>
+    </ul>
+  </div>
+
+  <!-- Section: Reusable component composition -->
+  <div class="content-section">
+    <h2>Patterns for Sharing Behavior</h2>
+    <p>
+      Before hooks existed, sharing stateful logic across components required <strong>Higher-Order Components</strong> (wrapping a component in a function) or <strong>render props</strong> (passing a function that returns JSX). Hooks replaced most of these use cases — a custom hook (Lesson 7) is almost always simpler. But you still need to <em>recognize</em> HOCs and render props in older codebases, and a few composition problems are still best solved with them.
+    </p>
+    <p>
+      Error boundaries and portals solve different problems: boundaries catch render-time crashes (and only class components can be one), portals render DOM into a different container (modals, tooltips). Compound components give you the elegant "<code>&lt;Tabs&gt;&lt;Tabs.List&gt;&lt;Tabs.Tab/&gt;&lt;/Tabs.List&gt;</code>" API you see in design systems.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q23 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What are Higher-Order Components (HOC)?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            An HOC is a <strong>function that takes a component and returns an enhanced component</strong>. It's a pattern for cross-cutting concerns — auth gating, logging, data fetching — wrapping a component with extra behaviour without modifying it.
+          </p>
+<pre><code><span class="kw">const</span> <span class="fn">withAuth</span> = (<span class="tp">Component</span>) =&gt; {
+  <span class="kw">return</span> (<span class="tp">props</span>) =&gt; {
+    <span class="kw">if</span> (!<span class="fn">isLoggedIn</span>()) <span class="kw">return</span> &lt;<span class="tp">Login</span> /&gt;;
+    <span class="kw">return</span> &lt;<span class="tp">Component</span> {...props} /&gt;;
+  };
+};
+<span class="kw">const</span> <span class="tp">ProtectedPage</span> = <span class="fn">withAuth</span>(<span class="tp">Dashboard</span>);</code></pre>
+          <p>
+            <strong>Status:</strong> less common since hooks — a custom <code>useAuth()</code> hook is usually cleaner. Still useful for cross-cutting concerns that genuinely wrap the whole component (e.g. injecting a provider). Famous example: <code>connect()</code> from react-redux is an HOC. Watch for "wrapper hell" (deeply nested HOCs) and lost displayName — the react.dev guidance is to prefer hooks for new code.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            HOC = <strong>wrapper component</strong> — takes a component, returns a better one. Hooks replaced most HOC use cases; still useful for complex cross-cutting wrapping.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q24 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What are render props?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            A render prop is a <strong>prop whose value is a function that returns JSX</strong>. The parent component owns some state/logic and calls the function to let the consumer decide how to render it. The most common form is the <code>children</code> prop used as a function.
+          </p>
+<pre><code>&lt;<span class="tp">DataProvider</span> <span class="tp">render</span>={(data) =&gt; &lt;<span class="tp">List</span> <span class="tp">items</span>={data} /&gt;} /&gt;
+
+<span class="cm">// Or via children:</span>
+&lt;<span class="tp">DataProvider</span>&gt;
+  {(data) =&gt; &lt;<span class="tp">List</span> <span class="tp">items</span>={data} /&gt;}
+&lt;/<span class="tp">DataProvider</span>&gt;</code></pre>
+          <p>
+            Like HOCs, render props were the pre-hooks way to share stateful logic. A custom hook does the same job without the nesting. You'll still see render props in older libraries (react-router v5's <code>&lt;Route render={...} /&gt;</code>) and in some animation libraries, so recognising the pattern matters.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Render props = <strong>"you tell me how to render, I give you the data."</strong> Hooks replaced this pattern, but it lingers in older codebases.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q26 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What is a React error boundary?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            An error boundary is a component that <strong>catches JavaScript errors thrown during rendering, in lifecycle methods, and in constructors of child components</strong>, then displays a fallback UI instead of unmounting the whole tree. <strong>Only class components can be error boundaries</strong> — there is no hook equivalent (yet).
+          </p>
+<pre><code><span class="kw">class</span> <span class="tp">ErrorBoundary</span> <span class="kw">extends</span> <span class="tp">React.Component</span> {
+  <span class="tp">state</span> = { <span class="tp">hasError</span>: <span class="kw">false</span> };
+
+  <span class="kw">static</span> <span class="fn">getDerivedStateFromError</span>(error) {
+    <span class="kw">return</span> { <span class="tp">hasError</span>: <span class="kw">true</span> };
+  }
+
+  <span class="fn">componentDidCatch</span>(error, info) {
+    <span class="fn">logError</span>(error, info); <span class="cm">// side-effect: telemetry</span>
+  }
+
+  <span class="fn">render</span>() {
+    <span class="kw">return</span> <span class="kw">this</span>.state.hasError
+      ? &lt;<span class="tp">Fallback</span> /&gt;
+      : <span class="kw">this</span>.props.children;
+  }
+}</code></pre>
+          <p>
+            <strong>What they DON'T catch:</strong> errors in event handlers, async code (<code>setTimeout</code>, promises), or errors thrown in server-side rendering. For those, use <code>try/catch</code> directly. The community library <code>react-error-boundary</code> wraps the boilerplate.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Error boundary = <strong>try/catch for JSX</strong>. Must be a class component. Catches render/lifecycle errors only — NOT event handlers, async, or SSR errors.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q27 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">4</span><span>What are React portals?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            A portal <strong>renders children into a DOM node outside the parent component's DOM hierarchy</strong>, while keeping them inside the React component tree. Useful for modals, tooltips, and overlays that visually escape their container (and would otherwise be clipped by <code>overflow: hidden</code> or broken by <code>z-index</code> stacking).
+          </p>
+<pre><code><span class="fn">ReactDOM</span>.<span class="fn">createPortal</span>(
+  &lt;<span class="tp">Modal</span> /&gt;,
+  document.<span class="fn">getElementById</span>(<span class="st">"modal-root"</span>)
+);</code></pre>
+          <p>
+            The key win: the child stays in the React tree, so <strong>events still bubble through the React hierarchy</strong> (not just the DOM hierarchy) and context still works — even though the actual DOM nodes are attached elsewhere. That lets you build a modal that's a true child in React but renders at <code>document.body</code>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Portal = <strong>"render here, show there."</strong> Modal stays in the React tree (events bubble, context works) but appears in a different DOM location.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q46 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">5</span><span>What is the compound components pattern?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Compound components are <strong>a set of components that implicitly share state through context</strong>, exposing a clean, composable API. Think HTML's <code>&lt;select&gt;</code> + <code>&lt;option&gt;</code>: the options know about the select's state without explicit props. This is how design systems like Radix, Headless UI, and Mantine build Tabs, Accordion, Menu, and Dialog.
+          </p>
+<pre><code>&lt;<span class="tp">Tabs</span>&gt;
+  &lt;<span class="tp">Tabs.List</span>&gt;
+    &lt;<span class="tp">Tabs.Tab</span>&gt;Tab 1&lt;/<span class="tp">Tabs.Tab</span>&gt;
+    &lt;<span class="tp">Tabs.Tab</span>&gt;Tab 2&lt;/<span class="tp">Tabs.Tab</span>&gt;
+  &lt;/<span class="tp">Tabs.List</span>&gt;
+  &lt;<span class="tp">Tabs.Panels</span>&gt;
+    &lt;<span class="tp">Tabs.Panel</span>&gt;Content 1&lt;/<span class="tp">Tabs.Panel</span>&gt;
+    &lt;<span class="tp">Tabs.Panel</span>&gt;Content 2&lt;/<span class="tp">Tabs.Panel</span>&gt;
+  &lt;/<span class="tp">Tabs.Panels</span>&gt;
+&lt;/<span class="tp">Tabs</span>&gt;</code></pre>
+          <p>
+            The parent (<code>Tabs</code>) owns the active index in state and provides it via context; each sub-component consumes that context. The result: flexible composition (consumers arrange children however they want) and an API that reads like the final HTML. The trade-off is more setup code than a single prop-driven component.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Compound components = <strong>implicit state sharing</strong>. Like <code>&lt;select&gt;</code> + <code>&lt;option&gt;</code>. Children know about parent state through context, without explicit props.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. Which errors does an error boundary NOT catch?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Errors thrown during a child's render</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Errors in event handlers, setTimeout, and promise rejections</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Errors in a child component's constructor</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Errors thrown in a child's lifecycle method</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Boundaries catch render/lifecycle/constructor errors only. Event handlers, async code, and SSR errors slip through — use try/catch there.</div>
+      <div class="quiz-feedback incorrect">❌ Boundaries catch render-time and lifecycle errors. They do NOT catch errors in event handlers, setTimeout, or promise rejections — wrap those in try/catch.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. You render a Modal via a portal to <code>document.body</code>. What stays true?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> The modal is now a sibling of the React root and is fully disconnected</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> React events no longer bubble to the parent</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> The modal remains in the React tree — events bubble through React's hierarchy and context still works</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> The portal re-renders the entire app</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! A portal only changes the DOM mount point. The component stays in the React tree, so event bubbling and context behave as if it were still nested.</div>
+      <div class="quiz-feedback incorrect">❌ A portal moves only the DOM node. React keeps the component in the tree, so events bubble through React's hierarchy and context resolves normally.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="d">
+      <p class="q-text">3. Compound components share state primarily through…</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Higher-order components</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A global Redux store</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Prop drilling every detail down</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Context provided by the parent and consumed by the sub-components</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! The parent owns state and exposes it via context; each sub-component reads what it needs. That's what makes the API read like native HTML.</div>
+      <div class="quiz-feedback incorrect">❌ Compound components use Context — the parent provides state, the sub-components consume it. No HOC, no global store, no drilling.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>HOCs, render props, and compound components are common follow-up questions — ask for a side-by-side if the differences aren't crisp.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0005-state-management-context.html" class="secondary">← Previous: State Management &amp; Context</a>
+    <a href="0007-custom-hooks-advanced-apis.html">Next: Custom Hooks &amp; Advanced APIs →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

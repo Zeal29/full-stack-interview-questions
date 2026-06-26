@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Refs, Events &amp; Memoization</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 4 of 10</span>
+    <h1>Refs, Events &amp; Memoization</h1>
+    <p class="subtitle">useRef, synthetic events, and the memoization trio (useMemo, useCallback, React.memo) — and when to skip them</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Use <code>useRef</code> for DOM access and mutable non-state values</li>
+      <li>Explain React's synthetic event system and the camelCase convention</li>
+      <li>Know when <code>useMemo</code>, <code>useCallback</code>, and <code>React.memo</code> actually help</li>
+      <li>Recognize the "over-optimization" anti-pattern</li>
+    </ul>
+  </div>
+
+  <!-- Section: Refs and performance -->
+  <div class="content-section">
+    <h2>Escaping the Render Cycle</h2>
+    <p>
+      So far everything has been declarative: state changes → React re-renders. But sometimes you need to <strong>step outside that loop</strong> — to focus an input, measure a node, store a timer id, or hold a mutable value that should <em>not</em> trigger a render. That's <code>useRef</code>. And sometimes a component re-renders more than it needs to, and you want to <strong>cache work</strong> — that's the memoization trio.
+    </p>
+    <p>
+      The most important interview insight about memoization: <strong>it's not free</strong>. <code>useMemo</code>/<code>useCallback</code> cache values but cost a dependency check on every render; <code>React.memo</code> does a shallow prop comparison. Reach for them only when profiling shows a real problem — the react.dev guidance is explicit: "you might not need memo." React 19's compiler will eventually do this automatically (Lesson 9).
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q14 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What is the <code>useRef</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useRef</code> returns a <strong>mutable object (<code>{ current }</code>) that persists across renders without causing re-renders</strong>. Two main uses: (1) access a DOM node by passing the ref as the <code>ref</code> prop; (2) store any mutable value (a timer id, a "previous value", a flag) that you don't want to trigger renders.
+          </p>
+<pre><code><span class="kw">const</span> inputRef = <span class="fn">useRef</span>(<span class="kw">null</span>);
+&lt;<span class="tp">input</span> <span class="tp">ref</span>={inputRef} /&gt;
+&lt;<span class="tp">button</span> <span class="tp">onClick</span>={() =&gt; inputRef.current.<span class="fn">focus</span>()}&gt;Focus&lt;/<span class="tp">button</span>&gt;
+
+<span class="cm">// Storing a mutable value (not state):</span>
+<span class="kw">const</span> timerRef = <span class="fn">useRef</span>(<span class="kw">null</span>);
+timerRef.current = <span class="fn">setInterval</span>(<span class="fn">tick</span>, <span class="nm">1000</span>); <span class="cm">// no re-render</span></code></pre>
+          <p>
+            Mutating <code>.current</code> does <strong>not</strong> schedule a re-render — that's the whole point. If you need the UI to update when the value changes, that's <code>useState</code>, not <code>useRef</code>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useRef</code> = <strong>"remember this, but don't re-render on change."</strong> Use for DOM access, timers, previous values. NOT for data that should drive the UI.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q17 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What are React events?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            React events use <strong>synthetic events</strong> — a cross-browser wrapper around native events that normalizes behaviour (so you write one API, not IE-vs-everyone-else). Handlers are attached via camelCase props (<code>onClick</code>, <code>onChange</code>, <code>onSubmit</code>), and you pass a <strong>function reference</strong>, not a function call.
+          </p>
+<pre><code>&lt;<span class="tp">button</span> <span class="tp">onClick</span>={handleClick}&gt;Click&lt;/<span class="tp">button</span>&gt;   <span class="cm">// ✅ reference</span>
+&lt;<span class="tp">button</span> <span class="tp">onClick</span>={handleClick()}&gt;X&lt;/<span class="tp">button</span>&gt; <span class="cm">// ❌ runs on render</span>
+
+&lt;<span class="tp">form</span> <span class="tp">onSubmit</span>={e =&gt; {
+  e.<span class="fn">preventDefault</span>(); <span class="cm">// stop full-page reload</span>
+}}&gt;…&lt;/<span class="tp">form</span>&gt;</code></pre>
+          <p>
+            Since React 17, events are attached to the root container (not <code>document</code>), which fixes issues with nested React apps and avoids some event-delegation surprises. Synthetic events are <strong>pooled</strong> in older React (16) but not anymore — you no longer need <code>e.persist()</code>.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            React events = <strong>camelCase</strong> (<code>onClick</code>), pass the <strong>function</strong> not a call (<code>{fn}</code> not <code>{fn()}</code>), and use <code>e.preventDefault()</code> instead of <code>return false</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q18 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What is the <code>useMemo</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useMemo</code> <strong>caches the result of an expensive calculation</strong> and only recomputes when its dependencies change. Without it, the calculation would run on every render even if inputs are identical.
+          </p>
+<pre><code><span class="kw">const</span> sortedItems = <span class="fn">useMemo</span>(
+  () =&gt; items.<span class="fn">toSorted</span>((a, b) =&gt; a.name.<span class="fn">localeCompare</span>(b.name)),
+  [items] <span class="cm">// only recompute when items changes</span>
+);</code></pre>
+          <p>
+            <strong>When it helps:</strong> genuinely expensive work (sorting thousands of rows, heavy math, deriving big objects) where the cost of computing exceeds the cost of the dependency check + cache lookup. <strong>When it hurts:</strong> wrapping trivial operations — the memo machinery costs more than the saved work. The react.dev advice: measure first, memo second.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useMemo</code> = <strong>"cache this calculation."</strong> Use for genuinely expensive work, not simple ones. Overusing it makes code slower and harder to read.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q19 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">4</span><span>What is the <code>useCallback</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useCallback</code> <strong>caches a function reference</strong> so it keeps the same identity across renders (unless its dependencies change). It's the function counterpart to <code>useMemo</code> (which caches a value). Use it when that stable identity matters — specifically, when the function is a dependency of <code>useEffect</code> or a prop to a memoized child.
+          </p>
+<pre><code><span class="kw">const</span> handleClick = <span class="fn">useCallback</span>(() =&gt; {
+  <span class="fn">setCount</span>(c =&gt; c + <span class="nm">1</span>);
+}, []); <span class="cm">// stable identity across renders</span>
+
+<span class="cm">// Only meaningful because Button is memoized:</span>
+&lt;<span class="tp">Button</span> <span class="tp">onClick</span>={handleClick} /&gt; <span class="cm">// same fn → memo skip works</span></code></pre>
+          <p>
+            <strong>Common misconception:</strong> wrapping every function in <code>useCallback</code> "for performance". A function is recreated on each render anyway — caching it only helps if some other code compares it by reference (a memoized child's prop check, or a <code>useEffect</code> dep). On its own, <code>useCallback</code> adds overhead.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useCallback</code> = <strong>"don't recreate this function."</strong> Only useful when the function's identity matters — i.e. it's a dependency of <code>useEffect</code> or a prop to a memoized child.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q20 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">5</span><span>What is <code>React.memo</code>?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>React.memo</code> is a <strong>higher-order component that skips re-rendering a child when its props are unchanged</strong>. It does a <strong>shallow comparison</strong> of props by default; pass a custom comparator as the second argument if you need deeper control.
+          </p>
+<pre><code><span class="kw">const</span> <span class="tp">Button</span> = <span class="tp">React</span>.<span class="fn">memo</span>(({ label, onClick }) =&gt; (
+  &lt;<span class="tp">button</span> <span class="tp">onClick</span>={onClick}&gt;{label}&lt;/<span class="tp">button</span>&gt;
+));</code></pre>
+          <p>
+            The trap: if the parent passes a new <strong>object/array/function</strong> every render, the shallow compare fails and <code>memo</code> never skips. That's why <code>useMemo</code>/<code>useCallback</code> pair with <code>memo</code> — they keep prop identity stable. Reach for <code>memo</code> only after profiling shows wasted renders; don't memoize everything.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>React.memo</code> = <strong>"skip re-render if props unchanged."</strong> Shallow-compares props. Only use when profiling shows unnecessary re-renders — and pair with stable props (useMemo/useCallback) or it's useless.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">1. Mutating <code>myRef.current = 5</code> causes…</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> A re-render of the component</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> A re-render of the component's children</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> No re-render — that's the point of a ref</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> An error — refs are immutable</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Refs hold mutable values that bypass the render cycle. If you need a render, use <code>useState</code>.</div>
+      <div class="quiz-feedback incorrect">❌ Refs never trigger re-renders. If a change should update the UI, use <code>useState</code>, not <code>useRef</code>.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">2. <code>React.memo</code> compares props by…</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Deep equality (full recursive compare)</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Shallow equality (===) — so new object/array/function props defeat it</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Reference to the component type only</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> JSON serialization</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Shallow <code>===</code> per prop — that's why a parent passing a fresh inline function/object defeats memo, and why useCallback/useMemo pair with it.</div>
+      <div class="quiz-feedback incorrect">❌ <code>React.memo</code> does a shallow per-prop <code>===</code>. Any new object/array/function reference each render will defeat it.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="d">
+      <p class="q-text">3. When does <code>useCallback</code> actually help performance?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Always — every function should be memoized</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> Only in class components</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> When the function returns a promise</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> When the function's identity is consumed as a dependency (useEffect) or as a prop to a memoized child</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! The cached identity only matters if something compares it by reference — a <code>useEffect</code> dep or a <code>React.memo</code> child.</div>
+      <div class="quiz-feedback incorrect">❌ Caching a function reference only helps when that identity is compared — as a <code>useEffect</code> dependency or a prop to a <code>React.memo</code> child. Otherwise it's pure overhead.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Unsure when to memoize vs not? The rule is "measure first" — ask your AI teacher to walk you through a profiling example.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0003-forms-lists-rendering.html" class="secondary">← Previous: Forms, Lists &amp; Rendering</a>
+    <a href="0005-state-management-context.html">Next: State Management &amp; Context →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>

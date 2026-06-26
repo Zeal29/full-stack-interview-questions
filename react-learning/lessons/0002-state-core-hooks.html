@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — State &amp; Core Hooks</title>
+  <link rel="stylesheet" href="../styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="lesson-header">
+    <span class="lesson-number">Lesson 2 of 10</span>
+    <h1>State &amp; Core Hooks</h1>
+    <p class="subtitle">State, useState, useEffect, and the component lifecycle — the engine that makes React reactive</p>
+  </div>
+
+  <!-- Learning Objectives -->
+  <div class="objectives">
+    <h2>What You'll Learn</h2>
+    <ul>
+      <li>Distinguish state from props and explain why state triggers re-renders</li>
+      <li>Use <code>useState</code> correctly, including the functional-updater pattern</li>
+      <li>Use <code>useEffect</code> with the right dependency array and cleanups</li>
+      <li>Map the three lifecycle phases onto hooks</li>
+    </ul>
+  </div>
+
+  <!-- Section: State and reactivity -->
+  <div class="content-section">
+    <h2>State Makes React Reactive</h2>
+    <p>
+      Props are data from the outside; <strong>state is a component's private memory</strong>. When state changes, React re-runs the component function and reconciles the new output against the DOM. This is the entire reactivity model: <em>state change → re-render → DOM update</em>. The react.dev docs call this <strong>"adding interactivity"</strong>.
+    </p>
+    <p>
+      Two hooks do most of the work in any React app: <code>useState</code> (hold data that changes) and <code>useEffect</code> (synchronize with things outside React — the network, the DOM, subscriptions). The single biggest source of React bugs is misunderstanding <strong>when effects run</strong> and <strong>when state updates are applied</strong>. Get these two right and most interview traps dissolve.
+    </p>
+  </div>
+
+  <!-- Q&A Cards -->
+  <div class="content-section">
+    <h2>Test Your Knowledge</h2>
+    <p style="color: var(--text-secondary); margin-bottom: var(--space-lg);">
+      Read each question, try to answer it mentally, then click <strong>"Reveal Answer"</strong> to check.
+    </p>
+
+    <!-- Q6 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">1</span><span>What is <code>state</code> in React?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            State is <strong>mutable data managed within a component</strong>. When state changes, React re-renders that component (and its children). Use the <code>useState</code> hook in function components. State is <em>private</em> to the component that owns it and <em>persists across re-renders</em> — React stashes it outside the function call.
+          </p>
+          <p>
+            Contrast with <strong>props</strong> (external, read-only data passed in). State is internal and changeable by the component itself; props come from the parent and cannot be mutated.
+          </p>
+<pre><code><span class="kw">const</span> [count, setCount] = <span class="fn">useState</span>(<span class="nm">0</span>);
+<span class="cm">// count  = current value (read it in JSX)</span>
+<span class="cm">// setCount = updater — calling it triggers a re-render</span></code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            State = <strong>the component's memory</strong>. Change it → React re-renders. Props = external input; state = internal memory.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">2</span><span>What is the <code>useState</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useState</code> adds local state to a function component. It returns a tuple <code>[currentValue, setterFunction]</code>. The <strong>initial value is used only on the first render</strong> — subsequent renders ignore it. To update based on the previous value, use the <strong>functional updater form</strong> so you never close over stale state.
+          </p>
+<pre><code><span class="kw">const</span> [name, setName] = <span class="fn">useState</span>(<span class="st">"Ali"</span>);
+
+<span class="cm">// Direct set</span>
+<span class="fn">setName</span>(<span class="st">"Ahmed"</span>);
+
+<span class="cm">// Functional update — needed when new state depends on previous</span>
+<span class="fn">setCount</span>(<span class="tp">prev</span> =&gt; <span class="tp">prev</span> + <span class="nm">1</span>);
+
+<span class="cm">// Lazy initial value — runs once, avoids expensive work on every render</span>
+<span class="kw">const</span> [data, setData] = <span class="fn">useState</span>(() =&gt; <span class="fn">expensiveInit</span>());</code></pre>
+          <p>
+            The functional form matters because state updates are <strong>batched and asynchronous</strong>. If you call <code>setCount(count + 1)</code> twice in a row, both read the same <code>count</code>, so you get +1 not +2. With <code>setCount(prev =&gt; prev + 1)</code> each call sees the latest queued value.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            Always use the <strong>callback form</strong> (<code>setCount(prev =&gt; prev + 1)</code>) when the new state depends on the previous. It prevents stale-closure bugs under batching.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">3</span><span>What is the <code>useEffect</code> hook?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            <code>useEffect</code> runs <strong>side effects after the component renders</strong> — fetching data, subscribing, manually touching the DOM, setting timers. It takes a function and an optional <strong>dependency array</strong>. You can return a <strong>cleanup function</strong> that runs before the next effect and on unmount.
+          </p>
+<pre><code><span class="fn">useEffect</span>(() =&gt; {
+  <span class="kw">const</span> id = <span class="fn">setInterval</span>(<span class="fn">tick</span>, <span class="nm">1000</span>);
+  <span class="kw">return</span> () =&gt; <span class="fn">clearInterval</span>(id); <span class="cm">// cleanup on unmount / before re-run</span>
+}, []); <span class="cm">// dependency array</span></code></pre>
+          <p>
+            The dependency array controls <em>when</em> the effect re-runs:
+          </p>
+          <ul style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+            <li><code>[]</code> — run once after mount (and cleanup on unmount).</li>
+            <li><code>[a, b]</code> — run after mount and whenever <code>a</code> or <code>b</code> changes.</li>
+            <li><strong>no array</strong> — run after every render (almost never what you want).</li>
+          </ul>
+          <p>
+            Think of effects as <strong>"synchronize this component with some external system"</strong>, not as a lifecycle lifecycle hook. The react.dev guidance: don't chain effects together — derive what you can during render.
+          </p>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            <code>useEffect</code> = <strong>"do something after render."</strong> <code>[]</code> = mount only. <code>[x]</code> = when <code>x</code> changes. No array = every render (rarely wanted). Always clean up subscriptions/timers — a missing cleanup is the #1 cause of memory leaks and stale-state bugs.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="qa-card">
+      <div class="qa-question">
+        <h3><span class="q-badge">4</span><span>What is the component lifecycle in React?</span></h3>
+      </div>
+      <button class="reveal-btn" onclick="toggleAnswer(this)"><span class="icon">▼</span> Reveal Answer</button>
+      <div class="qa-answer">
+        <div class="answer-content">
+          <p>
+            Three phases:
+          </p>
+          <ol style="margin-left: var(--space-lg); margin-bottom: var(--space-md);">
+            <li><strong>Mounting</strong> — component added to the DOM. Hook equivalent: <code>useEffect(fn, [])</code>.</li>
+            <li><strong>Updating</strong> — state or props change, causing a re-render. Hook equivalent: <code>useEffect(fn, [deps])</code>.</li>
+            <li><strong>Unmounting</strong> — component removed from the DOM. Hook equivalent: the cleanup returned from an effect.</li>
+          </ol>
+          <p>
+            Class components exposed explicit methods: <code>componentDidMount</code>, <code>componentDidUpdate</code>, <code>componentWillUnmount</code>. Hooks unify all three into effects with the dependency array. (There's also a "render phase" vs "commit phase" distinction — render produces the virtual DOM, commit applies it to the real DOM; effects run <em>after commit</em>.)
+          </p>
+<pre><code><span class="cm">// All three lifecycle phases in one hook:</span>
+<span class="fn">useEffect</span>(() =&gt; {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="st">"mount OR dep changed"</span>); <span class="cm">// mount + update</span>
+  <span class="kw">return</span> () =&gt; <span class="fn">console</span>.<span class="fn">log</span>(<span class="st">"cleanup"</span>);        <span class="cm">// unmount + before re-run</span>
+}, [dep]);</code></pre>
+          <div class="tip">
+            <span class="tip-label">💡 Memory Hook:</span>
+            In hooks: Mount = <code>useEffect(fn, [])</code>. Update = <code>useEffect(fn, [deps])</code>. Unmount = <code>return () =&gt; cleanup</code> inside the effect. Three class methods collapse into one hook.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini Quiz -->
+  <div class="quiz-section">
+    <h2>🧪 Quick Check</h2>
+
+    <div class="quiz-question" data-correct="b">
+      <p class="q-text">1. You call <code>setCount(count + 1)</code> twice in the same handler. The final value of <code>count</code> is…</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> +2 — each call applies immediately</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> +1 — both calls read the same stale value (batching)</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> 0 — React ignores duplicate calls</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Throws an error</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! Both calls close over the same <code>count</code>, so you get +1. Use the functional form <code>setCount(prev =&gt; prev + 1)</code> to get +2.</div>
+      <div class="quiz-feedback incorrect">❌ Both calls read the same <code>count</code> from this render (updates are batched/async). Result is +1. Use <code>setCount(prev =&gt; prev + 1)</code> instead.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="c">
+      <p class="q-text">2. When does a <code>useEffect</code> with an empty dependency array <code>[]</code> run?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> Before every render</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> After every render</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> Once after mount; its cleanup runs on unmount</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> Never — it's disabled</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! <code>[]</code> means "no dependencies to watch" → run once after mount, cleanup on unmount.</div>
+      <div class="quiz-feedback incorrect">❌ <code>[]</code> means "watch nothing" → the effect runs once after mount and its cleanup runs once on unmount.</div>
+    </div>
+
+    <div class="quiz-question" data-correct="a">
+      <p class="q-text">3. What happens if you omit the dependency array entirely?</p>
+      <div class="quiz-options">
+        <button class="quiz-option" data-value="a"><span class="option-letter">A</span> The effect runs after every render (and cleans up before each re-run)</button>
+        <button class="quiz-option" data-value="b"><span class="option-letter">B</span> The effect never runs</button>
+        <button class="quiz-option" data-value="c"><span class="option-letter">C</span> The effect runs only on unmount</button>
+        <button class="quiz-option" data-value="d"><span class="option-letter">D</span> React throws a compile error</button>
+      </div>
+      <div class="quiz-feedback correct">✅ Correct! With no array, the effect runs after every render — almost always a bug (often an infinite loop if the effect sets state).</div>
+      <div class="quiz-feedback incorrect">❌ No array = run after every render. If the effect sets state, this creates an infinite re-render loop — a classic interview bug.</div>
+    </div>
+
+    <div class="quiz-score" id="quizScore"></div>
+  </div>
+
+  <!-- Ask Reminder -->
+  <div class="ask-reminder">
+    <span class="emoji">💬</span>
+    <p>Stuck on dependency arrays or the functional-updater pattern? Ask your AI teacher — these are the most common interview traps.</p>
+  </div>
+
+  <!-- Navigation -->
+  <div class="lesson-nav">
+    <a href="0001-fundamentals.html" class="secondary">← Previous: Fundamentals</a>
+    <a href="0003-forms-lists-rendering.html">Next: Forms, Lists &amp; Rendering →</a>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function toggleAnswer(btn) {
+      const answer = btn.nextElementSibling;
+      const isVisible = answer.classList.contains('visible');
+      if (isVisible) {
+        answer.classList.remove('visible');
+        btn.classList.remove('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Reveal Answer';
+      } else {
+        answer.classList.add('visible');
+        btn.classList.add('revealed');
+        btn.innerHTML = '<span class="icon">▼</span> Hide Answer';
+      }
+    }
+
+    document.querySelectorAll('.quiz-question').forEach(q => {
+      const correct = q.dataset.correct;
+      const options = q.querySelectorAll('.quiz-option');
+      const feedbackCorrect = q.querySelector('.quiz-feedback.correct');
+      const feedbackIncorrect = q.querySelector('.quiz-feedback.incorrect');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          options.forEach(o => {
+            o.style.pointerEvents = 'none';
+            if (o.dataset.value === correct) o.classList.add('correct');
+          });
+          if (selected === correct) {
+            opt.classList.add('correct');
+            feedbackCorrect.style.display = 'block';
+          } else {
+            opt.classList.add('incorrect');
+            feedbackIncorrect.style.display = 'block';
+          }
+          checkAllAnswered();
+        });
+      });
+    });
+
+    function checkAllAnswered() {
+      const questions = document.querySelectorAll('.quiz-question');
+      const allAnswered = Array.from(questions).every(q =>
+        q.querySelector('.quiz-option.correct') || q.querySelector('.quiz-option.incorrect')
+      );
+      if (allAnswered) {
+        let score = 0;
+        questions.forEach(q => {
+          const selectedCorrect = q.querySelector('.quiz-option.correct');
+          const selectedIncorrect = q.querySelector('.quiz-option.incorrect');
+          if (selectedCorrect && !selectedIncorrect) score++;
+        });
+        const scoreEl = document.getElementById('quizScore');
+        scoreEl.textContent = `Score: ${score} / ${questions.length}` + (score === questions.length ? ' — Perfect! 🎉' : ' — Review the missed ones above.');
+        scoreEl.classList.add('visible');
+      }
+    }
+  </script>
+
+</body>
+</html>
